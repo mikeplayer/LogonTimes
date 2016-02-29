@@ -84,6 +84,7 @@
       <DependentUpon>LogonTimes.tt</DependentUpon>
     </Compile>
     <Compile Include="DataModel\TableExtensions.cs" />
+    <Compile Include="DataModel\IDataAccess.cs" />
     <Compile Include="LogonTimes.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -110,6 +111,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SystemService\MockSystemService.cs" />
     <Compile Include="TimeManagement.cs" />
     <Compile Include="UserManagement.cs" />
   </ItemGroup>
