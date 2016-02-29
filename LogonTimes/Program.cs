@@ -1,0 +1,40 @@
+﻿using System;
+using System.ServiceProcess;
+using System.Windows.Forms;
+
+namespace LogonTimes
+{
+    static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main(string[] args)
+        {
+            if (args.Length > 0)
+            {
+                if (args[0].Equals("/configure"))
+                {
+                    Application.EnableVisualStyles();
+                    Application.Run(new LogonTimesConfiguration());
+                    return;
+                }
+            }
+            ServiceBase[] ServicesToRun;
+            ServicesToRun = new ServiceBase[]
+            {
+                new LogonTimes()
+            };
+            ServiceBase.Run(ServicesToRun);
+        }
+    }
+    /*
+    SessionUnlock
+    SessionLock
+    ConsoleConnect
+    ConsoleDisconnect
+    SessionLogon
+    SessionLogoff
+    */
+}
