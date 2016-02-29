@@ -2,35 +2,18 @@
 using System.ServiceProcess;
 using System.IO;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using Cassia;
+using System.Text;
 
 namespace LogonTimes
 {
-
-    //[DllImport("wtsapi32.dll", SetLastError = true)]
-    //static extern bool WTSSendMessage(
-    //            IntPtr hServer,
-    //            [MarshalAs(UnmanagedType.I4)] int SessionId,
-    //            String pTitle,
-    //            [MarshalAs(UnmanagedType.U4)] int TitleLength,
-    //            String pMessage,
-    //            [MarshalAs(UnmanagedType.U4)] int MessageLength,
-    //            [MarshalAs(UnmanagedType.U4)] int Style,
-    //            [MarshalAs(UnmanagedType.U4)] int Timeout,
-    //            [MarshalAs(UnmanagedType.U4)] out int pResponse,
-    //            bool bWait);
-
-    [DllImport("Wtsapi32.dll", SetLastError = true)]
-    static extern bool WTSQuerySessionInformation(
-                IntPtr hServer,
-                uint sessionId,
-                WTS_INFO_CLASS wtsInfoClass,
-                out IntPtr ppBuffer,
-                out uint pBytesReturned
-            );
     public partial class LogonTimes : ServiceBase
     {
+
         private EventLog eventLog;
+        private const string crlf = "\r\n";
+        private TimeManagement timeManagement = new TimeManagement();
+        System.Timers.Timer timerx = new System.Timers.Timer();
 
         public LogonTimes()
         {
@@ -38,16 +21,10 @@ namespace LogonTimes
             string eventLogLog = "LogonTimesLog";
 
             InitializeComponent();
+            timerx.Elapsed += Timerx_Elapsed;
+            timerx.Interval = 60000;
             try
             {
-                //try
-                //{
-                //    EventLog.DeleteEventSource(eventLogSource, "Application");
-                //}
-                //catch (Exception ex)
-                //{
-                //    WriteError("Delete", ex);
-                //}
                 eventLog = new EventLog();
                 if (!EventLog.Exists(eventLogLog))
                 {
@@ -62,11 +39,17 @@ namespace LogonTimes
                 }
                 eventLog.Source = eventLogSource;
                 eventLog.Log = eventLogLog;
+                timeManagement.EventLog = eventLog;
             }
             catch (Exception ex)
             {
                 WriteError("Overall", ex);
             }
+        }
+
+        private void Timerx_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            timeManagement.UpdateLogins();
         }
 
         private void WriteError(string source, Exception ex)
@@ -81,27 +64,38 @@ namespace LogonTimes
 
         protected override void OnStart(string[] args)
         {
-            timer.Enabled = true;
+            timerx.Start();
             eventLog.WriteEntry("Start");
+        }
+
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            timeManagement.UpdateLogins();
         }
 
         protected override void OnStop()
         {
-            timer.Enabled = false;
+            timerx.Stop();
             eventLog.WriteEntry("Stop");
         }
 
         protected override void OnSessionChange(SessionChangeDescription changeDescription)
         {
             base.OnSessionChange(changeDescription);
-            eventLog.WriteEntry(string.Format("Change description: {0}", changeDescription.ToString()));
-            eventLog.WriteEntry(string.Format("Change Reason: {0}", changeDescription.Reason.ToString()));
-            eventLog.WriteEntry(string.Format("Change SessionId: {0}", changeDescription.SessionId.ToString()));
-        }
-
-        private void timer_Tick(object sender, EventArgs e)
-        {
-
+            ITerminalServicesManager manager = new TerminalServicesManager();
+            using (ITerminalServer server = manager.GetLocalServer())
+            {
+                server.Open();
+                ITerminalServicesSession session = server.GetSession(changeDescription.SessionId);
+                //var message = new StringBuilder();
+                //message.Append("User: ");
+                //message.Append(session.UserName);
+                //message.Append(crlf);
+                //message.Append("Change Reason: ");
+                //message.Append(changeDescription.Reason.ToString());
+                //eventLog.WriteEntry(message.ToString());
+                timeManagement.NewSessionEvent(session, changeDescription.Reason.ToString());
+            }
         }
     }
 }

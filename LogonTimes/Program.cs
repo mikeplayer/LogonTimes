@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace LogonTimes
 {
@@ -12,8 +9,18 @@ namespace LogonTimes
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        [STAThread]
+        static void Main(string[] args)
         {
+            if (args.Length > 0)
+            {
+                if (args[0].Equals("/configure"))
+                {
+                    Application.EnableVisualStyles();
+                    Application.Run(new LogonTimesConfiguration());
+                    return;
+                }
+            }
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
@@ -22,4 +29,12 @@ namespace LogonTimes
             ServiceBase.Run(ServicesToRun);
         }
     }
+    /*
+    SessionUnlock
+    SessionLock
+    ConsoleConnect
+    ConsoleDisconnect
+    SessionLogon
+    SessionLogoff
+    */
 }

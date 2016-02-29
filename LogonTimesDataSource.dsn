@@ -1,0 +1,9 @@
+[ODBC]
+DRIVER=SQL Server
+UID=Mike
+DATABASE=LogonTimes
+WSID=THE-BEAST
+APP=Microsoft Office 2016
+Trusted_Connection=Yes
+SERVER=(local)
+Description=LogonTimes
