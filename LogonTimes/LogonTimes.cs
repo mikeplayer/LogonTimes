@@ -3,51 +3,25 @@ using System.ServiceProcess;
 using System.IO;
 using System.Diagnostics;
 using Cassia;
-using System.Text;
+using LogonTimes.EventLogHandlers;
 
 namespace LogonTimes
 {
     public partial class LogonTimes : ServiceBase
     {
 
-        private EventLog eventLog;
         private const string crlf = "\r\n";
         private TimeManagement timeManagement = new TimeManagement();
-        System.Timers.Timer timerx = new System.Timers.Timer();
+        System.Timers.Timer timer = new System.Timers.Timer();
 
         public LogonTimes()
         {
-            string eventLogSource = "LogonTimesSource";
-            string eventLogLog = "LogonTimesLog";
-
             InitializeComponent();
-            timerx.Elapsed += Timerx_Elapsed;
-            timerx.Interval = 60000;
-            try
-            {
-                eventLog = new EventLog();
-                if (!EventLog.Exists(eventLogLog))
-                {
-                    try
-                    {
-                        EventLog.CreateEventSource(eventLogSource, eventLogLog);
-                    }
-                    catch (Exception ex)
-                    {
-                        WriteError("Create", ex);
-                    }
-                }
-                eventLog.Source = eventLogSource;
-                eventLog.Log = eventLogLog;
-                timeManagement.EventLog = eventLog;
-            }
-            catch (Exception ex)
-            {
-                WriteError("Overall", ex);
-            }
+            timer.Elapsed += Timer_Elapsed;
+            timer.Interval = 60000;
         }
 
-        private void Timerx_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             timeManagement.UpdateLogins();
         }
@@ -64,19 +38,14 @@ namespace LogonTimes
 
         protected override void OnStart(string[] args)
         {
-            timerx.Start();
-            eventLog.WriteEntry("Start");
-        }
-
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            timeManagement.UpdateLogins();
+            timer.Start();
+            EventLogHandler.Instance.WriteToEventLog("Start");
         }
 
         protected override void OnStop()
         {
-            timerx.Stop();
-            eventLog.WriteEntry("Stop");
+            timer.Stop();
+            EventLogHandler.Instance.WriteToEventLog("Stop");
         }
 
         protected override void OnSessionChange(SessionChangeDescription changeDescription)
@@ -87,13 +56,6 @@ namespace LogonTimes
             {
                 server.Open();
                 ITerminalServicesSession session = server.GetSession(changeDescription.SessionId);
-                //var message = new StringBuilder();
-                //message.Append("User: ");
-                //message.Append(session.UserName);
-                //message.Append(crlf);
-                //message.Append("Change Reason: ");
-                //message.Append(changeDescription.Reason.ToString());
-                //eventLog.WriteEntry(message.ToString());
                 timeManagement.NewSessionEvent(session, changeDescription.Reason.ToString());
             }
         }

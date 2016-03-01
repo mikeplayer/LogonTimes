@@ -3,9 +3,9 @@ using System.Linq;
 using System;
 using Cassia;
 using System.Threading;
-using System.Diagnostics;
 using System.Text;
 using LogonTimes.DataModel;
+using LogonTimes.EventLogHandlers;
 
 namespace LogonTimes
 {
@@ -28,20 +28,16 @@ namespace LogonTimes
         #region constructors
         public TimeManagement()
         {
-            pendingEventId = DataAccess.EventTypes.First(x => x.EventTypeName.Equals("Pending")).EventTypeId;
-            newDayLogonEventId = DataAccess.EventTypes.First(x => x.EventTypeName.Equals("NewDayLogon")).EventTypeId;
+            pendingEventId = DataAccess.Instance.EventTypes.First(x => x.EventTypeName.Equals("Pending")).EventTypeId;
+            newDayLogonEventId = DataAccess.Instance.EventTypes.First(x => x.EventTypeName.Equals("NewDayLogon")).EventTypeId;
             LoadLogonTimes();
         }
-        #endregion
-
-        #region Properties
-        public EventLog EventLog { get; set; }
         #endregion
 
         #region private methods
         private void LoadLogonTimes()
         {
-            logonTimesToday = DataAccess.LogonTimes.Where(x => x.EventTime >= DateTime.Today).ToList();
+            logonTimesToday = DataAccess.Instance.LogonTimes.Where(x => x.EventTime >= DateTime.Today).ToList();
         }
 
         private UserManagement UserManagement
@@ -81,7 +77,7 @@ namespace LogonTimes
                     EventTypeId = eventTypeId,
                     PersonId = currentPerson.PersonId
                 };
-                DataAccess.AddLogonTime(currentEvent);
+                DataAccess.Instance.AddLogonTime(currentEvent);
                 logonTimesToday.Add(currentEvent);
             }
         }
@@ -105,7 +101,7 @@ namespace LogonTimes
             message.Append("User ");
             message.Append(currentSession.UserName);
             message.Append(" has been automatically logged off");
-            EventLog.WriteEntry(message.ToString());
+            EventLogHandler.Instance.WriteToEventLog(message.ToString());
             currentSession.MessageBox("Logging off now"
                 , "You are not permitted to be logged on at this time and will be logged off automatically"
                 , RemoteMessageBoxButtons.Ok
@@ -126,7 +122,7 @@ namespace LogonTimes
             message.Append(" has received a ");
             message.Append(noOfMinutes);
             message.Append(" minute warning");
-            EventLog.WriteEntry(message.ToString());
+            EventLogHandler.Instance.WriteToEventLog(message.ToString());
             message = new StringBuilder();
             if (noOfMinutes == 0 || noOfMinutes == 1)
             {
@@ -191,7 +187,7 @@ namespace LogonTimes
                 }
                 //int total
             }
-            EventLog.WriteEntry(message.ToString());
+            EventLogHandler.Instance.WriteToEventLog(message.ToString());
         }
         #endregion
 
@@ -248,7 +244,7 @@ namespace LogonTimes
             EventType eventType = null;
             try
             {
-                eventType = DataAccess.EventTypes.First(x => x.EventTypeName.Equals(sessionEvent));
+                eventType = DataAccess.Instance.EventTypes.First(x => x.EventTypeName.Equals(sessionEvent));
             }
             catch (Exception ex)
             {
@@ -288,7 +284,7 @@ namespace LogonTimes
                     {
                         currentEvent.EventTypeId = eventType.EventTypeId;
                     }
-                    DataAccess.AddLogonTime(currentEvent);
+                    DataAccess.Instance.AddLogonTime(currentEvent);
                     currentPerson = null;
                     currentEvent = null;
                     return;
@@ -308,7 +304,7 @@ namespace LogonTimes
                 fiveMinuteWarningIssued = false;
                 CheckUserState();
             }
-            EventLog.WriteEntry(message.ToString());
+            EventLogHandler.Instance.WriteToEventLog(message.ToString());
         }
 
         public void UpdateLogins()
@@ -328,7 +324,7 @@ namespace LogonTimes
                 CreateCurrentEvent(pendingEventId);
                 refreshLogonTimes = true;
             }
-            DataAccess.AddLogonTime(currentEvent);
+            DataAccess.Instance.AddLogonTime(currentEvent);
             CheckUserState();
             currentDateTime = newDateTime;
             if (refreshLogonTimes)
@@ -336,7 +332,7 @@ namespace LogonTimes
                 message.Append("Refreshing logon times");
                 LoadLogonTimes();
             }
-            EventLog.WriteEntry(message.ToString());
+            EventLogHandler.Instance.WriteToEventLog(message.ToString());
         }
         #endregion
     }

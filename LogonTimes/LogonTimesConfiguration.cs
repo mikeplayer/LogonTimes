@@ -71,13 +71,13 @@ namespace LogonTimes
             var superFont = new Font(FontFamily.GenericSansSerif, 10, FontStyle.Bold);
             var standardFont = new Font(FontFamily.GenericSansSerif, 10, FontStyle.Regular);
             const int dayColumnCount = 12;
-            int timePeriodCount = DataAccess.TimePeriods.Count;
+            int timePeriodCount = DataAccess.Instance.TimePeriods.Count;
             int halfWay = timePeriodCount / 2;
             int timePeriodsPerHour = timePeriodCount / 24;
             int defaultWidth = gridWhen.Width / (timePeriodCount + dayColumnCount);
             gridWhen.DefaultWidth = defaultWidth;
             gridWhen.ColumnsCount = timePeriodCount + dayColumnCount;
-            gridWhen.RowsCount = DataAccess.DaysOfWeek.Count + 2;    //no of days + 2 header lines
+            gridWhen.RowsCount = DataAccess.Instance.DaysOfWeek.Count + 2;    //no of days + 2 header lines
 
             RectangleBorder border = new RectangleBorder(new BorderLine(SystemColors.Control), new BorderLine(SystemColors.Control));
 
@@ -99,7 +99,7 @@ namespace LogonTimes
             cellView.Border = border;
 
             int rowNumber = 2;
-            foreach (var day in DataAccess.DaysOfWeek)
+            foreach (var day in DataAccess.Instance.DaysOfWeek)
             {
                 gridWhen[rowNumber, 0] = new SourceGrid.Cells.ColumnHeader(day.DayName);
                 gridWhen[rowNumber, 0].ColumnSpan = dayColumnCount;
@@ -126,10 +126,10 @@ namespace LogonTimes
                 gridWhen[1, dayColumnCount + (i * timePeriodsPerHour)].View = standardHeaderView;
             }
             int col = dayColumnCount;
-            foreach (var timePeriod in DataAccess.TimePeriods)
+            foreach (var timePeriod in DataAccess.Instance.TimePeriods)
             {
                 int row = 2;
-                foreach (var day in DataAccess.DaysOfWeek)
+                foreach (var day in DataAccess.Instance.DaysOfWeek)
                 {
                     LogonTimeAllowed loginTimeAllowed = new LogonTimeAllowed();
                     loginTimeAllowed.Permitted = true;
@@ -359,7 +359,7 @@ namespace LogonTimes
                     var cell = gridWhen[i, j];
                     var currentCellValue = (WhenAllowedValues)cell.Value;
                     currentCellValue.LogonTimeAllowed.Permitted = !startIsPermit;
-                    DataAccess.UpdateLogonTimeAllowed(currentCellValue.LogonTimeAllowed);
+                    DataAccess.Instance.UpdateLogonTimeAllowed(currentCellValue.LogonTimeAllowed);
                     SetBackColour(currentCellValue);
                 }
             }

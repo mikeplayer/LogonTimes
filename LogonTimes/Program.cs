@@ -20,6 +20,12 @@ namespace LogonTimes
                     Application.Run(new LogonTimesConfiguration());
                     return;
                 }
+                if (args[0].Equals("/testservice"))
+                {
+                    Application.EnableVisualStyles();
+                    Application.Run(new TestServiceRunning());
+                    return;
+                }
             }
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]

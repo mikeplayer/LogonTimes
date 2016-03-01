@@ -6,18 +6,29 @@ using LinqToDB.Data;
 
 namespace LogonTimes.DataModel
 {
-    public static class DataAccess
+    public class DataAccess : IDataAccess
     {
-        private static List<DayOfWeek> daysOfWeek;
-        private static List<EventType> eventTypes;
-        private static List<HoursPerDay> hoursPerDays;
-        private static List<LogonTime> logonTimes;
-        private static List<LogonTimeAllowed> logonTimeAlloweds;
-        private static List<Person> persons;
-        private static List<TimePeriod> timePeriods;
+        private List<DayOfWeek> daysOfWeek;
+        private List<EventType> eventTypes;
+        private List<HoursPerDay> hoursPerDays;
+        private List<LogonTime> logonTimes;
+        private List<LogonTimeAllowed> logonTimeAlloweds;
+        private List<Person> persons;
+        private List<TimePeriod> timePeriods;
+        private static readonly DataAccess instance = new DataAccess();
+
+        private DataAccess() { }
+
+        public static DataAccess Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
 
         #region Days of week
-        public static List<DayOfWeek> DaysOfWeek
+        public List<DayOfWeek> DaysOfWeek
         {
             get
             {
@@ -32,7 +43,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static DayOfWeek GetDayOfWeek(int dayNumber)
+        public DayOfWeek GetDayOfWeek(int dayNumber)
         {
             if (!DaysOfWeek.Any(x => x.DayNumber == dayNumber))
             {
@@ -43,7 +54,7 @@ namespace LogonTimes.DataModel
         #endregion
 
         #region Event types
-        public static List<EventType> EventTypes
+        public List<EventType> EventTypes
         {
             get
             {
@@ -58,7 +69,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static EventType GetEventType(int eventTypeId)
+        public EventType GetEventType(int eventTypeId)
         {
             if (!EventTypes.Any(x => x.EventTypeId == eventTypeId))
             {
@@ -69,7 +80,7 @@ namespace LogonTimes.DataModel
         #endregion
 
         #region Hours per day
-        public static List<HoursPerDay> HoursPerDays
+        public List<HoursPerDay> HoursPerDays
         {
             get
             {
@@ -84,7 +95,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static HoursPerDay GetHoursPerDay(int hoursPerDayId)
+        public HoursPerDay GetHoursPerDay(int hoursPerDayId)
         {
             if (!HoursPerDays.Any(x => x.HoursPerDayId == hoursPerDayId))
             {
@@ -93,7 +104,7 @@ namespace LogonTimes.DataModel
             return HoursPerDays.First(x => x.HoursPerDayId == hoursPerDayId);
         }
 
-        public static void AddHourPerDay(HoursPerDay hourPerDay)
+        public void AddHourPerDay(HoursPerDay hourPerDay)
         {
             using (var db = new LogonTimesDB())
             {
@@ -102,7 +113,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void UpdateHourPerDay(HoursPerDay hourPerDay)
+        public void UpdateHourPerDay(HoursPerDay hourPerDay)
         {
             using (var db = new LogonTimesDB())
             {
@@ -110,7 +121,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void DeleteHourPerDay(HoursPerDay hourPerDay)
+        public void DeleteHourPerDay(HoursPerDay hourPerDay)
         {
             using (var db = new LogonTimesDB())
             {
@@ -121,7 +132,7 @@ namespace LogonTimes.DataModel
         #endregion
 
         #region Logon times
-        public static List<LogonTime> LogonTimes
+        public List<LogonTime> LogonTimes
         {
             get
             {
@@ -136,7 +147,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void AddLogonTime(LogonTime logonTime)
+        public void AddLogonTime(LogonTime logonTime)
         {
             using (var db = new LogonTimesDB())
             {
@@ -153,7 +164,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void DeleteLogonTime(LogonTime logonTime)
+        public void DeleteLogonTime(LogonTime logonTime)
         {
             using (var db = new LogonTimesDB())
             {
@@ -164,7 +175,7 @@ namespace LogonTimes.DataModel
         #endregion
 
         #region Logon Times Allowed
-        public static List<LogonTimeAllowed> LogonTimesAllowed
+        public List<LogonTimeAllowed> LogonTimesAllowed
         {
             get
             {
@@ -179,7 +190,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void AddLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
+        public void AddLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
         {
             using (var db = new LogonTimesDB())
             {
@@ -188,7 +199,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
+        public void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
         {
             using (var db = new LogonTimesDB())
             {
@@ -196,7 +207,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void DeleteLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
+        public void DeleteLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
         {
             using (var db = new LogonTimesDB())
             {
@@ -207,7 +218,7 @@ namespace LogonTimes.DataModel
         #endregion
 
         #region Person
-        public static List<Person> People
+        public List<Person> People
         {
             get
             {
@@ -222,7 +233,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void AddPerson(Person person)
+        public void AddPerson(Person person)
         {
             using (var db = new LogonTimesDB())
             {
@@ -231,7 +242,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void MakePersonRestricted(Person person)
+        public void MakePersonRestricted(Person person)
         {
             using (var db = new LogonTimesDB())
             {
@@ -273,7 +284,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static void MakePersonUnrestricted(Person person)
+        public void MakePersonUnrestricted(Person person)
         {
             using (var db = new LogonTimesDB())
             {
@@ -294,7 +305,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static Person GetPerson(int personId)
+        public Person GetPerson(int personId)
         {
             if (!People.Any(x => x.PersonId == personId))
             {
@@ -305,7 +316,7 @@ namespace LogonTimes.DataModel
         #endregion
 
         #region Time periods
-        public static List<TimePeriod> TimePeriods
+        public List<TimePeriod> TimePeriods
         {
             get
             {
@@ -320,7 +331,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public static TimePeriod GetTimePeriod(int timePeriodId)
+        public TimePeriod GetTimePeriod(int timePeriodId)
         {
             if (!TimePeriods.Any(x => x.TimePeriodId == timePeriodId))
             {
