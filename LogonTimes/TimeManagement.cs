@@ -5,7 +5,7 @@ using Cassia;
 using System.Threading;
 using System.Text;
 using LogonTimes.DataModel;
-using LogonTimes.EventLogHandlers;
+using LogonTimes.Logging;
 
 namespace LogonTimes
 {
@@ -101,7 +101,7 @@ namespace LogonTimes
             message.Append("User ");
             message.Append(currentSession.UserName);
             message.Append(" has been automatically logged off");
-            EventLogHandler.Instance.WriteToEventLog(message.ToString());
+            Logger.Instance.Log(message.ToString(), DebugLevels.Info);
             currentSession.MessageBox("Logging off now"
                 , "You are not permitted to be logged on at this time and will be logged off automatically"
                 , RemoteMessageBoxButtons.Ok
@@ -122,7 +122,7 @@ namespace LogonTimes
             message.Append(" has received a ");
             message.Append(noOfMinutes);
             message.Append(" minute warning");
-            EventLogHandler.Instance.WriteToEventLog(message.ToString());
+            Logger.Instance.Log(message.ToString(), DebugLevels.Debug);
             message = new StringBuilder();
             if (noOfMinutes == 0 || noOfMinutes == 1)
             {
@@ -187,7 +187,7 @@ namespace LogonTimes
                 }
                 //int total
             }
-            EventLogHandler.Instance.WriteToEventLog(message.ToString());
+            Logger.Instance.Log(message.ToString(), DebugLevels.Debug);
         }
         #endregion
 
@@ -210,45 +210,127 @@ namespace LogonTimes
         public void NewSessionEvent(ITerminalServicesSession session, string sessionEvent)
         {
             var message = new StringBuilder();
-            message.Append("New session event ");
-            message.Append(sessionEvent);
-            message.Append(crlf);
-            message.Append("User: ");
-            message.Append(session.UserName);
-            message.Append(crlf);
-            message.Append("Current user: ");
-            if (currentPerson == null)
-            {
-                message.Append("(Not set)");
-            }
-            else
-            {
-                message.Append(currentPerson.LogonName);
-            }
-            message.Append(crlf);
-            if (currentEvent == null)
-            {
-                message.Append("No current event");
-            }
-            else
-            {
-                message.Append("Current event exists");
-                message.Append(crlf);
-                message.Append(currentEvent.PersonId);
-                message.Append(crlf);
-                message.Append(currentEvent.EventTypeId);
-            }
-            message.Append(crlf);
-            currentSession = session;
-            string userName = session.UserName;
-            EventType eventType = null;
             try
             {
-                eventType = DataAccess.Instance.EventTypes.First(x => x.EventTypeName.Equals(sessionEvent));
+                if (Logger.Instance.ShouldLog(DebugLevels.Info))
+                {
+                    message.Append("New session event ");
+                    message.Append(sessionEvent);
+                    message.Append(crlf);
+                    message.Append("User: ");
+                    message.Append(session.UserName);
+                    message.Append(crlf);
+                }
+                if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+                {
+                    message.Append("Current user: ");
+                    if (currentPerson == null)
+                    {
+                        message.Append("(Not set)");
+                    }
+                    else
+                    {
+                        message.Append(currentPerson.LogonName);
+                    }
+                    message.Append(crlf);
+                    if (currentEvent == null)
+                    {
+                        message.Append("No current event");
+                    }
+                    else
+                    {
+                        message.Append("Current event exists");
+                        message.Append(crlf);
+                        message.Append(currentEvent.PersonId);
+                        message.Append(crlf);
+                        message.Append(currentEvent.EventTypeId);
+                    }
+                    message.Append(crlf);
+                }
+                currentSession = session;
+                string userName = session.UserName;
+                EventType eventType = null;
+                try
+                {
+                    eventType = DataAccess.Instance.EventTypes.First(x => x.EventTypeName.Equals(sessionEvent));
+                }
+                catch (Exception ex)
+                {
+                    message.Append("Error occurred retrieving event type ");
+                    message.Append(sessionEvent);
+                    message.Append(crlf);
+                    message.Append(ex.Message);
+                    message.Append(crlf);
+                    message.Append(ex.StackTrace);
+                    message.Append(crlf);
+                }
+                if (eventType != null)
+                {
+                    if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+                    {
+                        message.Append("Event type not null");
+                        message.Append(crlf);
+                    }
+                    if (!eventType.IsLoggedOn)
+                    {
+                        if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+                        {
+                            message.Append("Log off event");
+                            message.Append(crlf);
+                        }
+                        if (string.IsNullOrEmpty(userName) && currentPerson == null)
+                        {
+                            return;     //Can't do anything with this - the person must have been logged on before this process started so we don't know who they are
+                        }
+                        if (!string.IsNullOrEmpty(userName))
+                        {
+                            if (currentPerson == null || !userName.Equals(currentPerson.LogonName))
+                            {
+                                currentPerson = userManagement.GetPersonDetail(userName);
+                                currentEvent = null;    //We don't want to overwrite any previously saved events, so force the creation of a new one
+                            }
+                        }
+                        if (currentEvent == null)
+                        {
+                            CreateCurrentEvent(eventType.EventTypeId);
+                        }
+                        else
+                        {
+                            currentEvent.EventTypeId = eventType.EventTypeId;
+                        }
+                        if (currentEvent != null)
+                        {
+                            DataAccess.Instance.AddLogonTime(currentEvent);
+                        }
+                        currentPerson = null;
+                        currentEvent = null;
+                        return;
+                    }
+                    if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+                    {
+                        message.Append("Log on event");
+                        message.Append(crlf);
+                    }
+                    if (string.IsNullOrEmpty(userName))
+                    {
+                        if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+                        {
+                            message.Append("Username empty");
+                            message.Append(crlf);
+                        }
+                        return;     //Can't do anything here.  unlikely to happen anyway as the only events with no name appear to be logoff events
+                    }
+                    currentPerson = userManagement.GetPersonDetail(userName);
+                    CreateCurrentEvent(eventType.EventTypeId);
+                    CreateCurrentEvent(pendingEventId);
+                    tenMinuteWarningIssued = false;
+                    fiveMinuteWarningIssued = false;
+                    CheckUserState();
+                }
             }
             catch (Exception ex)
             {
-                message.Append("Error occurred retrieving event type ");
+                message.Append("Error occurred in NewSessionEvent ");
                 message.Append(sessionEvent);
                 message.Append(crlf);
                 message.Append(ex.Message);
@@ -256,55 +338,7 @@ namespace LogonTimes
                 message.Append(ex.StackTrace);
                 message.Append(crlf);
             }
-            if (eventType != null)
-            {
-                message.Append("Event type not null");
-                message.Append(crlf);
-                if (!eventType.IsLoggedOn)
-                {
-                    message.Append("Log off event");
-                    message.Append(crlf);
-                    if (string.IsNullOrEmpty(userName) && currentPerson == null)
-                    {
-                        return;     //Can't do anything with this - the person must have been logged on before this process started so we don't know who they are
-                    }
-                    if (!string.IsNullOrEmpty(userName))
-                    {
-                        if (currentPerson == null || !userName.Equals(currentPerson.LogonName))
-                        {
-                            currentPerson = userManagement.GetPersonDetail(userName);
-                            currentEvent = null;    //We don't want to overwrite any previously saved events, so force the creation of a new one
-                        }
-                    }
-                    if (currentEvent == null)
-                    {
-                        CreateCurrentEvent(eventType.EventTypeId);
-                    }
-                    else
-                    {
-                        currentEvent.EventTypeId = eventType.EventTypeId;
-                    }
-                    DataAccess.Instance.AddLogonTime(currentEvent);
-                    currentPerson = null;
-                    currentEvent = null;
-                    return;
-                }
-                message.Append("Log on event");
-                message.Append(crlf);
-                if (string.IsNullOrEmpty(userName))
-                {
-                    message.Append("Username empty");
-                    message.Append(crlf);
-                    return;     //Can't do anything here.  unlikely to happen anyway as the only events with no name appear to be logoff events
-                }
-                currentPerson = userManagement.GetPersonDetail(userName);
-                CreateCurrentEvent(eventType.EventTypeId);
-                CreateCurrentEvent(pendingEventId);
-                tenMinuteWarningIssued = false;
-                fiveMinuteWarningIssued = false;
-                CheckUserState();
-            }
-            EventLogHandler.Instance.WriteToEventLog(message.ToString());
+            Logger.Instance.Log(message.ToString(), DebugLevels.Error);
         }
 
         public void UpdateLogins()
@@ -332,7 +366,7 @@ namespace LogonTimes
                 message.Append("Refreshing logon times");
                 LoadLogonTimes();
             }
-            EventLogHandler.Instance.WriteToEventLog(message.ToString());
+            Logger.Instance.Log(message.ToString(), DebugLevels.Debug);
         }
         #endregion
     }

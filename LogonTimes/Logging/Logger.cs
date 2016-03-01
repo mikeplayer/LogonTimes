@@ -2,20 +2,22 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace LogonTimes.EventLogHandlers
+namespace LogonTimes.Logging
 {
-    public class EventLogHandler
+    public class Logger
     {
-        private static readonly EventLogHandler instance = new EventLogHandler();
+        private static readonly Logger instance = new Logger();
         private EventLog eventLog;
+        private int currentLogLevel;
 
         #region constructors
-        private EventLogHandler()
+        private Logger()
         {
+            currentLogLevel = Properties.Settings.Default.DebugLevel;
             OpenLog();
         }
 
-        public static EventLogHandler Instance
+        public static Logger Instance
         {
             get
             {
@@ -25,9 +27,17 @@ namespace LogonTimes.EventLogHandlers
         #endregion
 
         #region Public methods
-        public void WriteToEventLog(string message)
+        public void Log(string message, DebugLevels debugLevel)
         {
-            eventLog.WriteEntry(message);
+            if (ShouldLog(debugLevel))
+            {
+                eventLog.WriteEntry(message);
+            }
+        }
+
+        public bool ShouldLog(DebugLevels debugLevel)
+        {
+            return (currentLogLevel >= (int)debugLevel);
         }
         #endregion
 

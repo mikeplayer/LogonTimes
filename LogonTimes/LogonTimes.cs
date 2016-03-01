@@ -1,9 +1,8 @@
 ﻿using System;
 using System.ServiceProcess;
 using System.IO;
-using System.Diagnostics;
 using Cassia;
-using LogonTimes.EventLogHandlers;
+using LogonTimes.Logging;
 
 namespace LogonTimes
 {
@@ -39,13 +38,13 @@ namespace LogonTimes
         protected override void OnStart(string[] args)
         {
             timer.Start();
-            EventLogHandler.Instance.WriteToEventLog("Start");
+            Logger.Instance.Log("Start", DebugLevels.Info);
         }
 
         protected override void OnStop()
         {
             timer.Stop();
-            EventLogHandler.Instance.WriteToEventLog("Stop");
+            Logger.Instance.Log("Stop", DebugLevels.Info);
         }
 
         protected override void OnSessionChange(SessionChangeDescription changeDescription)

@@ -85,7 +85,8 @@
       <DependentUpon>LogonTimes.tt</DependentUpon>
     </Compile>
     <Compile Include="DataModel\TableExtensions.cs" />
-    <Compile Include="EventLogHandlers\EventLogHandler.cs" />
+    <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Logging\DebugLevels.cs" />
     <Compile Include="LogonTimes.cs">
       <SubType>Component</SubType>
     </Compile>

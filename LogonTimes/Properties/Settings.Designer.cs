@@ -44,5 +44,14 @@ namespace LogonTimes.Properties {
                 return ((string)(this["LogonTimesConnectionString"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int DebugLevel {
+            get {
+                return ((int)(this["DebugLevel"]));
+            }
+        }
     }
 }
