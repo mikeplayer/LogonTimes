@@ -78,13 +78,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataModel\DataAccess.cs" />
+    <Compile Include="DataModel\IDataAccess.cs" />
     <Compile Include="DataModel\LogonTimes.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LogonTimes.tt</DependentUpon>
     </Compile>
     <Compile Include="DataModel\TableExtensions.cs" />
-    <Compile Include="DataModel\IDataAccess.cs" />
+    <Compile Include="EventLogHandlers\EventLogHandler.cs" />
     <Compile Include="LogonTimes.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -111,7 +112,13 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="SystemService\MockSystemService.cs" />
+    <Compile Include="SystemService\MockTerminalServicesSession.cs" />
+    <Compile Include="TestServiceRunning.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TestServiceRunning.Designer.cs">
+      <DependentUpon>TestServiceRunning.cs</DependentUpon>
+    </Compile>
     <Compile Include="TimeManagement.cs" />
     <Compile Include="UserManagement.cs" />
   </ItemGroup>
@@ -156,6 +163,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ProjectInstaller.resx">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestServiceRunning.resx">
+      <DependentUpon>TestServiceRunning.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

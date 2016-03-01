@@ -13,7 +13,7 @@ namespace LogonTimes
 
         public List<Person> LoadPeople()
         {
-            var people = DataAccess.People;
+            var people = DataAccess.Instance.People;
             SelectQuery query = new SelectQuery("Win32_UserAccount");
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
             foreach (ManagementObject userAccount in searcher.Get())
@@ -24,7 +24,7 @@ namespace LogonTimes
                 {
                     Person person = new Person();
                     person.LogonName = personName;
-                    DataAccess.AddPerson(person);
+                    DataAccess.Instance.AddPerson(person);
                 }
             }
             return people.ToList();
@@ -32,9 +32,9 @@ namespace LogonTimes
 
         public Person GetPersonDetail(string personName)
         {
-            if (DataAccess.People.Any(x => x.LogonName.Equals(personName)))
+            if (DataAccess.Instance.People.Any(x => x.LogonName.Equals(personName)))
             {
-                return DataAccess.People.First(x => x.LogonName.Equals(personName));
+                return DataAccess.Instance.People.First(x => x.LogonName.Equals(personName));
             }
             return null;
         }
@@ -57,20 +57,20 @@ namespace LogonTimes
         public void SetPersonToRestricted(string personName)
         {
             var person = GetPersonDetail(personName);
-            DataAccess.MakePersonRestricted(person);
+            DataAccess.Instance.MakePersonRestricted(person);
         }
 
         public void SetPersonToUnrestricted(string personName)
         {
             var person = GetPersonDetail(personName);
-            DataAccess.MakePersonUnrestricted(person);
+            DataAccess.Instance.MakePersonUnrestricted(person);
         }
 
         public void UpdateHoursPerDay(int hoursPerDayId, float? newValue)
         {
-            var hoursAllowed = DataAccess.GetHoursPerDay(hoursPerDayId);
+            var hoursAllowed = DataAccess.Instance.GetHoursPerDay(hoursPerDayId);
             hoursAllowed.HoursAllowed = newValue;
-            DataAccess.UpdateHourPerDay(hoursAllowed);
+            DataAccess.Instance.UpdateHourPerDay(hoursAllowed);
         }
 
         public List<HoursPerDay> HoursPerDayForPerson(string personName)
