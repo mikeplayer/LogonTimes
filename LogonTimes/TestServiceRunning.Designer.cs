@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TestServiceRunning));
             this.btnUpdateLogins = new System.Windows.Forms.Button();
             this.txtUserName = new System.Windows.Forms.TextBox();
             this.btnChangeSession = new System.Windows.Forms.Button();
@@ -113,6 +114,7 @@
             this.Controls.Add(this.btnChangeSession);
             this.Controls.Add(this.txtUserName);
             this.Controls.Add(this.btnUpdateLogins);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "TestServiceRunning";
             this.Text = "TestServiceRunning";
             this.ResumeLayout(false);

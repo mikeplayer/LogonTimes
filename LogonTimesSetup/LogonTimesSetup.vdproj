@@ -33,6 +33,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_3D01BFF9D80441F4A80175DC35ADF5E8"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_41E43BE1F8A9A2DCDC8054ED9FAB0693"
         "OwnerKey" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
         "MsmSig" = "8:_UNDEFINED"
@@ -128,6 +134,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.5"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.5 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.5"
+                    }
+                }
             }
         }
         "Release"
@@ -152,6 +166,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.5"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.5 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.5"
+                    }
+                }
             }
         }
     }
@@ -245,11 +267,6 @@
             "AssemblyAsmDisplayName" = "8:SourceGrid, Version=4.30.5904.35277, Culture=neutral, PublicKeyToken=df6f5e538749e85d, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_19E2DAEE6761B17F8B5DAF993D31D5B9"
-                    {
-                    "Name" = "8:SourceGrid.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:SourceGrid.dll"
             "TargetName" = "8:"
@@ -289,6 +306,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3D01BFF9D80441F4A80175DC35ADF5E8"
+            {
+            "SourcePath" = "8:..\\LogonTimes\\Iconshock-Cms-User-login.ico"
+            "TargetName" = "8:Iconshock-Cms-User-login.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_41E43BE1F8A9A2DCDC8054ED9FAB0693"
             {
             "AssemblyRegister" = "3:1"
@@ -296,11 +333,6 @@
             "AssemblyAsmDisplayName" = "8:Cassia, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_41E43BE1F8A9A2DCDC8054ED9FAB0693"
-                    {
-                    "Name" = "8:Cassia.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Cassia.dll"
             "TargetName" = "8:"
@@ -327,11 +359,6 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_8E5EAC2E5CC42C887FB440003D83D513"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -358,11 +385,6 @@
             "AssemblyAsmDisplayName" = "8:linq2db, Version=1.0.7.3, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_B792921759DD3DFE995616E384BC15BA"
-                    {
-                    "Name" = "8:linq2db.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:linq2db.dll"
             "TargetName" = "8:"
@@ -412,7 +434,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_EBDBDCAD6BB845F58711AAD14D46AAE6"
             {
-            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\[ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -437,9 +459,9 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:LogonTimesSetup"
+        "ProductName" = "8:Logon Times"
         "ProductCode" = "8:{EEB2D5CE-E67F-42A3-ACEF-D93B22C1A261}"
-        "PackageCode" = "8:{1DFF000F-A109-48BC-916D-413E05D03E34}"
+        "PackageCode" = "8:{7AF1E9AA-8AEE-44D0-B10C-BAA8C9114F76}"
         "UpgradeCode" = "8:{7181D884-7BE5-4759-9363-D200F3A87E23}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -447,12 +469,12 @@
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
         "ProductVersion" = "8:1.0.0"
-        "Manufacturer" = "8:Default Company Name"
+        "Manufacturer" = "8:Player Software"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:LogonTimesSetup"
+        "Title" = "8:Logon Times"
         "Subject" = "8:"
-        "ARPCONTACT" = "8:Default Company Name"
+        "ARPCONTACT" = "8:Player Software"
         "Keywords" = "8:"
         "ARPCOMMENTS" = "8:"
         "ARPURLINFOABOUT" = "8:"
@@ -460,7 +482,7 @@
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
-        "TargetPlatform" = "3:0"
+        "TargetPlatform" = "3:1"
         "PreBuildEvent" = "8:"
         "PostBuildEvent" = "8:"
         "RunPostBuildEvent" = "3:0"
@@ -570,7 +592,7 @@
             "Target" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
             "Folder" = "8:_1F968D149E4345C3A681E89A8102EA0E"
             "WorkingFolder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
-            "Icon" = "8:"
+            "Icon" = "8:_3D01BFF9D80441F4A80175DC35ADF5E8"
             "Feature" = "8:"
             }
         }

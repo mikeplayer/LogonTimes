@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using LinqToDB;
+using System;
 
 namespace LogonTimes.DataModel
 {
@@ -71,6 +72,30 @@ namespace LogonTimes.DataModel
             get
             {
                 return DataAccess.Instance.GetEventType(EventTypeId);
+            }
+        }
+
+        public LogonTime CorrespondingEvent
+        {
+            get
+            {
+                if (CorrespondingEventId == null)
+                {
+                    return null;
+                }
+                return DataAccess.Instance.GetLogonTime(CorrespondingEventId.Value);
+            }
+        }
+
+        public TimeSpan LoggedOnDuration
+        {
+            get
+            {
+                if (EventType.IsLoggedOn && CorrespondingEvent != null)
+                {
+                    return EventTime.Subtract(CorrespondingEvent.EventTime);
+                }
+                return new TimeSpan(0);
             }
         }
     }

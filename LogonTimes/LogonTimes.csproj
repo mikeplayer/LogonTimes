@@ -51,6 +51,9 @@
   <PropertyGroup>
     <StartupObject>LogonTimes.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Iconshock-Cms-User-login.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Cassia">
       <HintPath>..\ExternalDLLs\Cassia.dll</HintPath>
@@ -181,6 +184,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LogonTimes.generated.cs</LastGenOutput>
     </Content>
+    <Content Include="Iconshock-Cms-User-login.ico" />
     <Content Include="LinqToDB.Templates\CopyMe.Access.tt.txt" />
     <Content Include="LogonTimes.mdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

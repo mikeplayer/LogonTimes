@@ -172,6 +172,15 @@ namespace LogonTimes.DataModel
                 LogonTimes.Remove(logonTime);
             }
         }
+
+        public LogonTime GetLogonTime(int logonTimeId)
+        {
+            if (!LogonTimes.Any(x => x.LogonTimeId == logonTimeId))
+            {
+                return null;
+            }
+            return LogonTimes.First(x => x.LogonTimeId == logonTimeId);
+        }
         #endregion
 
         #region Logon Times Allowed

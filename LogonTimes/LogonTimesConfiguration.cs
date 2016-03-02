@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using DevAge.Drawing;
 using System.Text;
 using LogonTimes.DataModel;
+using System.Security.Principal;
 
 namespace LogonTimes
 {
@@ -25,8 +26,19 @@ namespace LogonTimes
         public LogonTimesConfiguration()
         {
             InitializeComponent();
+            CheckPermissions();
             LoadUsers();
             SetupLogonTimesGrid();
+        }
+
+        private void CheckPermissions()
+        {
+            bool isAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator) ? true : false;
+            if (!isAdmin)
+            {
+                MessageBox.Show("This program must be run as an administrator\r\nRight click and select 'Run as administrator'", "Must run as an administrator");
+                Application.Exit();
+            }
         }
 
         private void LoadUsers()

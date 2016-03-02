@@ -69,10 +69,11 @@ namespace LogonTimes.DataModel
 	[Table("LogonTime")]
 	public partial class LogonTime
 	{
-		[PrimaryKey, Identity] public int      LogonTimeId { get; set; } // Long
-		[Column,     NotNull ] public int      PersonId    { get; set; } // Long
-		[Column,     NotNull ] public int      EventTypeId { get; set; } // Long
-		[Column,     NotNull ] public DateTime EventTime   { get; set; } // DateTime
+		[PrimaryKey, Identity] public int      LogonTimeId          { get; set; } // Long
+		[Column,     NotNull ] public int      PersonId             { get; set; } // Long
+		[Column,     NotNull ] public int      EventTypeId          { get; set; } // Long
+		[Column,     NotNull ] public DateTime EventTime            { get; set; } // DateTime
+		[Column,     Nullable] public int?     CorrespondingEventId { get; set; } // Long
 	}
 
 	[Table("LogonTimeAllowed")]
@@ -96,8 +97,8 @@ namespace LogonTimes.DataModel
 	public partial class TimePeriod
 	{
 		[PrimaryKey, Identity] public int       TimePeriodId { get; set; } // Long
-		[Column,     Nullable] public DateTime PeriodStart  { get; set; } // DateTime
-		[Column,     Nullable] public DateTime PeriodEnd    { get; set; } // DateTime
+		[Column,     NotNull] public DateTime PeriodStart  { get; set; } // DateTime
+		[Column,     NotNull] public DateTime PeriodEnd    { get; set; } // DateTime
 	}
 
 	public static partial class TableExtensions
