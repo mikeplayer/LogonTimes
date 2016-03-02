@@ -147,7 +147,7 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public void AddLogonTime(LogonTime logonTime)
+        public void AddOrUpdateLogonTime(LogonTime logonTime)
         {
             using (var db = new LogonTimesDB())
             {

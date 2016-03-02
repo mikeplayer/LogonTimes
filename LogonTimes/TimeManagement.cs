@@ -40,6 +40,18 @@ namespace LogonTimes
             logonTimesToday = DataAccess.Instance.LogonTimes.Where(x => x.EventTime >= DateTime.Today).ToList();
         }
 
+        private LogonTime PreviousLogon()
+        {
+            var options = logonTimesToday.Where(x => x.PersonId == currentPerson.PersonId
+                && x.EventType.IsLoggedOn
+                && x.CorrespondingEventId == null).OrderByDescending(x => x.EventTime);
+            if (options.Any())
+            {
+                return options.First();
+            }
+            return null;
+        }
+
         private UserManagement UserManagement
         {
             get
@@ -77,8 +89,19 @@ namespace LogonTimes
                     EventTypeId = eventTypeId,
                     PersonId = currentPerson.PersonId
                 };
-                DataAccess.Instance.AddLogonTime(currentEvent);
+                DataAccess.Instance.AddOrUpdateLogonTime(currentEvent);
                 logonTimesToday.Add(currentEvent);
+                if (!currentEvent.EventType.IsLoggedOn)
+                {
+                    var previousLogon = PreviousLogon();
+                    if (previousLogon != null)
+                    {
+                        currentEvent.CorrespondingEventId = previousLogon.LogonTimeId;
+                        DataAccess.Instance.AddOrUpdateLogonTime(currentEvent);
+                        previousLogon.CorrespondingEventId = currentEvent.LogonTimeId;
+                        DataAccess.Instance.AddOrUpdateLogonTime(previousLogon);
+                    }
+                }
             }
         }
 
@@ -300,7 +323,7 @@ namespace LogonTimes
                         }
                         if (currentEvent != null)
                         {
-                            DataAccess.Instance.AddLogonTime(currentEvent);
+                            DataAccess.Instance.AddOrUpdateLogonTime(currentEvent);
                         }
                         currentPerson = null;
                         currentEvent = null;
@@ -358,7 +381,7 @@ namespace LogonTimes
                 CreateCurrentEvent(pendingEventId);
                 refreshLogonTimes = true;
             }
-            DataAccess.Instance.AddLogonTime(currentEvent);
+            DataAccess.Instance.AddOrUpdateLogonTime(currentEvent);
             CheckUserState();
             currentDateTime = newDateTime;
             if (refreshLogonTimes)

@@ -13,7 +13,7 @@ namespace LogonTimes.DataModel
         List<TimePeriod> TimePeriods { get; }
 
         void AddHourPerDay(HoursPerDay hourPerDay);
-        void AddLogonTime(LogonTime logonTime);
+        void AddOrUpdateLogonTime(LogonTime logonTime);
         void AddLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed);
         void AddPerson(Person person);
         void DeleteHourPerDay(HoursPerDay hourPerDay);
