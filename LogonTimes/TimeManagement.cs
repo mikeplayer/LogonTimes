@@ -13,8 +13,6 @@ namespace LogonTimes
     {
         private UserManagement userManagement = new UserManagement();
         private List<LogonTime> logonTimesToday;
-        private List<HoursPerDay> currentUserHoursPerDay;
-        private List<LogonTime> currentUserLogonTimes;
         private ITerminalServicesSession currentSession = null;
         private DateTime currentDateTime = DateTime.Now;
         private Person currentPerson = null;
@@ -64,22 +62,12 @@ namespace LogonTimes
             }
         }
 
-        private bool CurrentPersonIsRestricted()
-        {
-            if (currentPerson == null)
-            {
-                return false;
-            }
-            return (currentPerson.HoursPerDay.Any()
-                || currentPerson.LogonTimesAllowed.Any());
-        }
-
         private void CreateCurrentEvent(int eventTypeId)
         {
             var message = new StringBuilder();
             message.Append("Create current event");
             message.Append(crlf);
-            if (CurrentPersonIsRestricted())
+            if (currentPerson.IsRestricted)
             {
                 message.Append("User is restricted");
                 message.Append(crlf);
@@ -103,6 +91,7 @@ namespace LogonTimes
                     }
                 }
             }
+            Logger.Instance.Log(message.ToString(), DebugLevels.Debug);
         }
 
         private LogonTimeAllowed GetLogonTimeAllowed(DateTime timeWanted)
@@ -172,40 +161,69 @@ namespace LogonTimes
             tenMinuteWarningIssued = true;  //Don't want to issue a 10 minute warning if the 5 minute warning has already been done
         }
 
+        private TimeSpan HoursLoggedOnToday
+        {
+            get
+            {
+                TimeSpan result = new TimeSpan(0);
+                var currentLogons = logonTimesToday.Where(x => x.PersonId == currentPerson.PersonId && !x.EventType.IsLoggedOn);
+                foreach (var logon in currentLogons)
+                {
+                    result = result.Add(logon.LoggedOnDuration);
+                }
+                return result;
+            }
+        }
+
         private void CheckUserState()
         {
             var message = new StringBuilder();
             message.Append("Check user state");
             message.Append(crlf);
-            if (currentSession != null && CurrentPersonIsRestricted())
+            if (currentSession != null && currentPerson.IsRestricted)
             {
                 message.Append("current session != null and ");
                 message.Append(currentSession.UserName);
                 message.Append(" is restricted");
+                int minutesRemaining = (int)((currentPerson.MaximumHoursToday - HoursLoggedOnToday.TotalHours) * 60);
                 DateTime today = DateTime.Today;
                 DateTime currentDateTime = DateTime.Now;
                 DateTime fiveMinuteWarning = currentDateTime.AddMinutes(5);
                 DateTime tenMinuteWarning = currentDateTime.AddMinutes(10);
-                if (!GetLogonTimeAllowed(currentDateTime).Permitted)
+                if (!GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0)
                 {
                     LogSessionOff();
                     return;
                 }
                 var currentPersonLoginTimes = logonTimesToday.Where(x => x.PersonId == currentPerson.PersonId);
                 var nextLogonTime = GetLogonTimeAllowed(fiveMinuteWarning);
-                if (!fiveMinuteWarningIssued && !nextLogonTime.Permitted)
+                if (!fiveMinuteWarningIssued && (!nextLogonTime.Permitted || minutesRemaining < 5))
                 {
-                    DateTime nextTimespanTime = today.Add(nextLogonTime.TimePeriod.PeriodStart.TimeOfDay);
-                    var difference = nextTimespanTime.Subtract(currentDateTime).TotalMinutes;
-                    IssueWarning((int)difference);
+                    if (!nextLogonTime.Permitted)
+                    {
+                        DateTime nextTimespanTime = today.Add(nextLogonTime.TimePeriod.PeriodStart.TimeOfDay);
+                        var difference = nextTimespanTime.Subtract(currentDateTime).TotalMinutes;
+                        IssueWarning((int)difference);
+                    }
+                    else
+                    {
+                        IssueWarning(minutesRemaining);
+                    }
                     return;
                 }
                 nextLogonTime = GetLogonTimeAllowed(tenMinuteWarning);
-                if (!tenMinuteWarningIssued && !nextLogonTime.Permitted)
+                if (!tenMinuteWarningIssued && (!nextLogonTime.Permitted || minutesRemaining < 10))
                 {
-                    DateTime nextTimespanTime = today.Add(nextLogonTime.TimePeriod.PeriodStart.TimeOfDay);
-                    var difference = nextTimespanTime.Subtract(currentDateTime).TotalMinutes;
-                    IssueWarning((int)difference);
+                    if (!nextLogonTime.Permitted)
+                    {
+                        DateTime nextTimespanTime = today.Add(nextLogonTime.TimePeriod.PeriodStart.TimeOfDay);
+                        var difference = nextTimespanTime.Subtract(currentDateTime).TotalMinutes;
+                        IssueWarning((int)difference);
+                    }
+                    else
+                    {
+                        IssueWarning(minutesRemaining);
+                    }
                     return;
                 }
                 //int total

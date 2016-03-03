@@ -1,4 +1,4 @@
-﻿namespace LogonTimes
+﻿namespace LogonTimes.UI
 {
     partial class LogonTimesConfiguration
     {

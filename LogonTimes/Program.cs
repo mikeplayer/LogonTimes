@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ServiceProcess;
 using System.Windows.Forms;
+using LogonTimes.UI;
 
 namespace LogonTimes
 {

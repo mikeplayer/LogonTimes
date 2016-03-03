@@ -91,7 +91,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                if (EventType.IsLoggedOn && CorrespondingEvent != null)
+                if (!EventType.IsLoggedOn && CorrespondingEvent != null)
                 {
                     return EventTime.Subtract(CorrespondingEvent.EventTime);
                 }
@@ -106,7 +106,7 @@ namespace LogonTimes.DataModel
     {
         public override string ToString()
         {
-            return string.Format("{0} {1} {2} {3}", Person.LogonName, DayOfWeek.DayName, TimePeriod.PeriodStart.ToString("hh:nn"), Permitted);
+            return string.Format("{0} {1} {2} {3}", Person.LogonName, DayOfWeek.DayName, TimePeriod.PeriodStart.ToString("hh:mm"), Permitted);
         }
 
         public Person Person
@@ -164,6 +164,31 @@ namespace LogonTimes.DataModel
             get
             {
                 return DataAccess.Instance.LogonTimesAllowed.Where(x => x.PersonId == PersonId).ToList();
+            }
+        }
+
+        public bool IsRestricted
+        {
+            get
+            {
+                return (HoursPerDay.Any()
+                    || LogonTimesAllowed.Any());
+            }
+        }
+
+        public double MaximumHoursToday
+        {
+            get
+            {
+                if (HoursPerDay.Any(x => x.DayNumber == (int)DateTime.Today.DayOfWeek))
+                {
+                    var hourPerDay = HoursPerDay.First(x => x.DayNumber == (int)DateTime.Today.DayOfWeek);
+                    if (hourPerDay.HoursAllowed.HasValue)
+                    {
+                        return hourPerDay.HoursAllowed.Value;
+                    }
+                }
+                return 24;
             }
         }
     }

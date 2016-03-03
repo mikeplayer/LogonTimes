@@ -8,7 +8,7 @@ using System.Text;
 using LogonTimes.DataModel;
 using System.Security.Principal;
 
-namespace LogonTimes
+namespace LogonTimes.UI
 {
     public partial class LogonTimesConfiguration : Form
     {
