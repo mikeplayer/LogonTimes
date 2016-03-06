@@ -2,6 +2,7 @@
 using System.Linq;
 using LinqToDB;
 using System;
+using System.Reflection;
 
 namespace LogonTimes.DataModel
 {
@@ -201,6 +202,130 @@ namespace LogonTimes.DataModel
         {
             return string.Format("{0} to {1}", PeriodStart.ToString("h:mm tt"), PeriodEnd.ToString("h:mm tt"));
         }
+    }
+    #endregion
+
+    #region System settings
+    public partial class SystemSettingDetail
+    {
+        public SystemSettingType SystemSettingType
+        {
+            get
+            {
+                return DataAccess.Instance.SystemSettingTypes.First(x => x.SystemSettingNameId == SystemSettingNameId);
+            }
+        }
+
+        public int? IntValue
+        {
+            get
+            {
+                if (SystemSettingType.DataType.Equals("int"))
+                {
+                    int result;
+                    if (int.TryParse(SystemSetting, out result))
+                    {
+                        return result;
+                    }
+                }
+                return null;
+            }
+        }
+
+        public bool? BoolValue
+        {
+            get
+            {
+                if (SystemSettingType.DataType.Equals("bool"))
+                {
+                    bool result;
+                    if (bool.TryParse(SystemSetting, out result))
+                    {
+                        return result;
+                    }
+                }
+                return null;
+            }
+        }
+
+        public string StringValue
+        {
+            get
+            {
+                if (SystemSettingType.DataType.Equals("string"))
+                {
+                    return SystemSetting;
+                }
+                return null;
+            }
+        }
+    }
+
+    public static class SystemSettings
+    {
+        public static SystemSettingDetail Detail(this SystemSettingTypesEnum settingType)
+        {
+            SystemSettingAttribute attr = GetAttr(settingType);
+            return DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+        }
+
+        public static bool? BoolValue(this SystemSettingTypesEnum settingType)
+        {
+            SystemSettingAttribute attr = GetAttr(settingType);
+            var systemSetting = DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+            if (systemSetting != null)
+            {
+                return systemSetting.BoolValue;
+            }
+            return null;
+        }
+
+        public static int? IntValue(this SystemSettingTypesEnum settingType)
+        {
+            SystemSettingAttribute attr = GetAttr(settingType);
+            var systemSetting = DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+            if (systemSetting != null)
+            {
+                return systemSetting.IntValue;
+            }
+            return null;
+        }
+
+        public static string StringValue(this SystemSettingTypesEnum settingType)
+        {
+            SystemSettingAttribute attr = GetAttr(settingType);
+            var systemSetting = DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+            if (systemSetting != null)
+            {
+                return systemSetting.StringValue;
+            }
+            return null;
+        }
+
+        private static SystemSettingAttribute GetAttr(SystemSettingTypesEnum settingType)
+        {
+            return (SystemSettingAttribute)Attribute.GetCustomAttribute(ForValue(settingType), typeof(SystemSettingAttribute));
+        }
+
+        private static MemberInfo ForValue(SystemSettingTypesEnum settingType)
+        {
+            return typeof(SystemSettingTypesEnum).GetField(Enum.GetName(typeof(SystemSettingTypesEnum), settingType));
+        }
+    }
+
+    class SystemSettingAttribute : Attribute
+    {
+        internal SystemSettingAttribute(string systemSettingType)
+        {
+            SystemSettingType = systemSettingType;
+        }
+        public string SystemSettingType { get; private set; }
+    }
+
+    public enum SystemSettingTypesEnum
+    {
+        [SystemSetting("ConfigurationChanged")] ConfigurationChanged,
+        [SystemSetting("Version")] Version,
     }
     #endregion
 }

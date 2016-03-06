@@ -19,13 +19,15 @@ namespace LogonTimes.DataModel
 	/// </summary>
 	public partial class LogonTimesDB : LinqToDB.Data.DataConnection
 	{
-		public ITable<DayOfWeek>        DayOfWeeks        { get { return this.GetTable<DayOfWeek>(); } }
-		public ITable<EventType>        EventTypes        { get { return this.GetTable<EventType>(); } }
-		public ITable<HoursPerDay>      HoursPerDays      { get { return this.GetTable<HoursPerDay>(); } }
-		public ITable<LogonTime>        LogonTimes        { get { return this.GetTable<LogonTime>(); } }
-		public ITable<LogonTimeAllowed> LogonTimeAlloweds { get { return this.GetTable<LogonTimeAllowed>(); } }
-		public ITable<Person>           People            { get { return this.GetTable<Person>(); } }
-		public ITable<TimePeriod>       TimePeriods       { get { return this.GetTable<TimePeriod>(); } }
+		public ITable<DayOfWeek>           DayOfWeeks           { get { return this.GetTable<DayOfWeek>(); } }
+		public ITable<EventType>           EventTypes           { get { return this.GetTable<EventType>(); } }
+		public ITable<HoursPerDay>         HoursPerDays         { get { return this.GetTable<HoursPerDay>(); } }
+		public ITable<LogonTime>           LogonTimes           { get { return this.GetTable<LogonTime>(); } }
+		public ITable<LogonTimeAllowed>    LogonTimeAlloweds    { get { return this.GetTable<LogonTimeAllowed>(); } }
+		public ITable<Person>              People               { get { return this.GetTable<Person>(); } }
+		public ITable<SystemSettingDetail> SystemSettingDetails { get { return this.GetTable<SystemSettingDetail>(); } }
+		public ITable<SystemSettingType>   SystemSettingTypes   { get { return this.GetTable<SystemSettingType>(); } }
+		public ITable<TimePeriod>          TimePeriods          { get { return this.GetTable<TimePeriod>(); } }
 
 		public LogonTimesDB()
 		{
@@ -55,6 +57,7 @@ namespace LogonTimes.DataModel
 		[PrimaryKey, Identity] public int    EventTypeId   { get; set; } // Long
 		[Column,     NotNull ] public string EventTypeName { get; set; } // text(50)
 		[Column,     NotNull ] public bool   IsLoggedOn    { get; set; } // Bit
+		[Column,     NotNull ] public bool   TriggersEvent { get; set; } // Bit
 	}
 
 	[Table("HoursPerDay")]
@@ -93,12 +96,27 @@ namespace LogonTimes.DataModel
 		[Column,     NotNull ] public string LogonName { get; set; } // text(100)
 	}
 
+	[Table("SystemSettingDetails")]
+	public partial class SystemSettingDetail
+	{
+		[PrimaryKey, Identity] public int    SystemSettingNameId { get; set; } // Long
+		[Column,     Nullable] public string SystemSetting       { get; set; } // text(255)
+	}
+
+	[Table("SystemSettingTypes")]
+	public partial class SystemSettingType
+	{
+		[PrimaryKey, Identity] public int    SystemSettingNameId { get; set; } // Long
+		[Column,     Nullable] public string SystemSettingName   { get; set; } // text(255)
+		[Column,     Nullable] public string DataType            { get; set; } // text(255)
+	}
+
 	[Table("TimePeriod")]
 	public partial class TimePeriod
 	{
-		[PrimaryKey, Identity] public int       TimePeriodId { get; set; } // Long
-		[Column,     NotNull] public DateTime PeriodStart  { get; set; } // DateTime
-		[Column,     NotNull] public DateTime PeriodEnd    { get; set; } // DateTime
+		[PrimaryKey, Identity] public int      TimePeriodId { get; set; } // Long
+		[Column,     NotNull ] public DateTime PeriodStart  { get; set; } // DateTime
+		[Column,     NotNull ] public DateTime PeriodEnd    { get; set; } // DateTime
 	}
 
 	public static partial class TableExtensions
@@ -137,6 +155,18 @@ namespace LogonTimes.DataModel
 		{
 			return table.FirstOrDefault(t =>
 				t.PersonId == PersonId);
+		}
+
+		public static SystemSettingDetail Find(this ITable<SystemSettingDetail> table, int SystemSettingNameId)
+		{
+			return table.FirstOrDefault(t =>
+				t.SystemSettingNameId == SystemSettingNameId);
+		}
+
+		public static SystemSettingType Find(this ITable<SystemSettingType> table, int SystemSettingNameId)
+		{
+			return table.FirstOrDefault(t =>
+				t.SystemSettingNameId == SystemSettingNameId);
 		}
 
 		public static TimePeriod Find(this ITable<TimePeriod> table, int TimePeriodId)

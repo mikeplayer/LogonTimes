@@ -410,6 +410,13 @@ namespace LogonTimes.UI
                 }
             }
         }
+
+        private void LogonTimesConfiguration_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            var configUpdated = SystemSettingTypesEnum.ConfigurationChanged.Detail();
+            configUpdated.SystemSetting = true.ToString();
+            DataAccess.Instance.UpdateSystemSettingDetail(configUpdated);
+        }
         #endregion
 
         #region subclasses

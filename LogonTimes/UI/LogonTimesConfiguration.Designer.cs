@@ -280,6 +280,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "LogonTimesConfiguration";
             this.Text = "Logon Times Configuration";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LogonTimesConfiguration_FormClosing);
             this.Load += new System.EventHandler(this.LogonTimesConfiguration_Load);
             this.splitter.Panel1.ResumeLayout(false);
             this.splitter.Panel2.ResumeLayout(false);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LinqToDB;
 using LinqToDB.Data;
+using LogonTimes.Logging;
 
 namespace LogonTimes.DataModel
 {
@@ -14,6 +15,7 @@ namespace LogonTimes.DataModel
         private List<LogonTime> logonTimes;
         private List<LogonTimeAllowed> logonTimeAlloweds;
         private List<Person> persons;
+        private List<SystemSettingType> systemSettingTypes;
         private List<TimePeriod> timePeriods;
         private static readonly DataAccess instance = new DataAccess();
 
@@ -24,6 +26,25 @@ namespace LogonTimes.DataModel
             get
             {
                 return instance;
+            }
+        }
+
+        public void CheckForUpdates()
+        {
+            var configUpdated = SystemSettingTypesEnum.ConfigurationChanged.Detail();
+            if (configUpdated.BoolValue.Value)
+            {
+                Logger.Instance.Log("Configuration changed - refreshing data", DebugLevels.Debug);
+                daysOfWeek = null;
+                eventTypes = null;
+                hoursPerDays = null;
+                logonTimes = null;
+                logonTimeAlloweds = null;
+                persons = null;
+                systemSettingTypes = null;
+                timePeriods = null;
+                configUpdated.SystemSetting = false.ToString();
+                Instance.UpdateSystemSettingDetail(configUpdated);
             }
         }
 
@@ -321,6 +342,51 @@ namespace LogonTimes.DataModel
                 return null;
             }
             return People.First(x => x.PersonId == personId);
+        }
+        #endregion
+
+        #region System settings
+        public List<SystemSettingType> SystemSettingTypes
+        {
+            get
+            {
+                if (systemSettingTypes == null)
+                {
+                    using (var db = new LogonTimesDB())
+                    {
+                        systemSettingTypes = (from systemSettingType in db.SystemSettingTypes select systemSettingType).ToList();
+                    }
+                }
+                return systemSettingTypes;
+            }
+        }
+
+        public SystemSettingDetail GetSystemSettingDetail(string setting)
+        {
+            var systemSettingType = SystemSettingTypes.First(x => x.SystemSettingName.Equals(setting));
+            if (systemSettingType != null)
+            {
+                using (var db = new LogonTimesDB())
+                {
+                    var systemSettings = (from systemSettingDetail
+                                         in db.SystemSettingDetails
+                                          where systemSettingDetail.SystemSettingNameId == systemSettingType.SystemSettingNameId
+                                          select systemSettingDetail).ToList();
+                    if (systemSettings.Any())
+                    {
+                        return systemSettings.First();
+                    }
+                }
+            }
+            return null;
+        }
+
+        public void UpdateSystemSettingDetail(SystemSettingDetail setting)
+        {
+            using (var db = new LogonTimesDB())
+            {
+                db.Update(setting);
+            }
         }
         #endregion
 

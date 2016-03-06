@@ -19,6 +19,7 @@ namespace LogonTimes
         private LogonTime currentEvent = null;
         private int pendingEventId;
         private int newDayLogonEventId;
+        private bool logoffMessageGiven = false;
         private bool tenMinuteWarningIssued = false;
         private bool fiveMinuteWarningIssued = false;
         private const string crlf = "\r\n";
@@ -62,15 +63,23 @@ namespace LogonTimes
             }
         }
 
+        private void AddLineToMessage(StringBuilder stringBuilder, string message)
+        {
+            stringBuilder.Append(message);
+            stringBuilder.Append(crlf);
+        }
+
         private void CreateCurrentEvent(int eventTypeId)
         {
             var message = new StringBuilder();
-            message.Append("Create current event");
-            message.Append(crlf);
-            if (currentPerson.IsRestricted)
+            AddLineToMessage(message, "Create current event");
+            if (currentPerson != null)
             {
-                message.Append("User is restricted");
-                message.Append(crlf);
+                AddLineToMessage(message, string.Format("Current person: {0}", currentPerson.LogonName));
+            }
+            if (currentPerson != null && currentPerson.IsRestricted)
+            {
+                AddLineToMessage(message, "User is restricted");
                 currentEvent = new LogonTime
                 {
                     EventTime = DateTime.Now,
@@ -85,8 +94,19 @@ namespace LogonTimes
                     if (previousLogon != null)
                     {
                         currentEvent.CorrespondingEventId = previousLogon.LogonTimeId;
+                        AddLineToMessage(message, "Updating current event with previous event ID");
+                        message.Append("Current event ID: ");
+                        AddLineToMessage(message, currentEvent.LogonTimeId.ToString());
+                        message.Append("Corresponding event ID: ");
+                        AddLineToMessage(message, currentEvent.CorrespondingEventId.ToString());
                         DataAccess.Instance.AddOrUpdateLogonTime(currentEvent);
+
                         previousLogon.CorrespondingEventId = currentEvent.LogonTimeId;
+                        AddLineToMessage(message, "Updating previous event with current event ID");
+                        message.Append("Previous event ID: ");
+                        AddLineToMessage(message, previousLogon.LogonTimeId.ToString());
+                        message.Append("Corresponding event ID: ");
+                        AddLineToMessage(message, previousLogon.CorrespondingEventId.ToString());
                         DataAccess.Instance.AddOrUpdateLogonTime(previousLogon);
                     }
                 }
@@ -177,22 +197,22 @@ namespace LogonTimes
 
         private void CheckUserState()
         {
+            DataAccess.Instance.CheckForUpdates();
             var message = new StringBuilder();
-            message.Append("Check user state");
-            message.Append(crlf);
-            if (currentSession != null && currentPerson.IsRestricted)
+            AddLineToMessage(message, "Check user state");
+            if (currentSession != null && currentPerson != null && currentPerson.IsRestricted)
             {
-                message.Append("current session != null and ");
-                message.Append(currentSession.UserName);
-                message.Append(" is restricted");
+                AddLineToMessage(message, string.Format("current session != null and {0} is restricted", currentSession.UserName));
                 int minutesRemaining = (int)((currentPerson.MaximumHoursToday - HoursLoggedOnToday.TotalHours) * 60);
                 DateTime today = DateTime.Today;
                 DateTime currentDateTime = DateTime.Now;
                 DateTime fiveMinuteWarning = currentDateTime.AddMinutes(5);
                 DateTime tenMinuteWarning = currentDateTime.AddMinutes(10);
-                if (!GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0)
+                if (!logoffMessageGiven || !GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0)
+                //if (!GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0)
                 {
                     LogSessionOff();
+                    logoffMessageGiven = true;
                     return;
                 }
                 var currentPersonLoginTimes = logonTimesToday.Where(x => x.PersonId == currentPerson.PersonId);
@@ -256,11 +276,9 @@ namespace LogonTimes
                 if (Logger.Instance.ShouldLog(DebugLevels.Info))
                 {
                     message.Append("New session event ");
-                    message.Append(sessionEvent);
-                    message.Append(crlf);
+                    AddLineToMessage(message, sessionEvent);
                     message.Append("User: ");
-                    message.Append(session.UserName);
-                    message.Append(crlf);
+                    AddLineToMessage(message, session.UserName);
                 }
                 if (Logger.Instance.ShouldLog(DebugLevels.Debug))
                 {
@@ -280,8 +298,7 @@ namespace LogonTimes
                     }
                     else
                     {
-                        message.Append("Current event exists");
-                        message.Append(crlf);
+                        AddLineToMessage(message, "Current event exists");
                         message.Append(currentEvent.PersonId);
                         message.Append(crlf);
                         message.Append(currentEvent.EventTypeId);
@@ -298,26 +315,21 @@ namespace LogonTimes
                 catch (Exception ex)
                 {
                     message.Append("Error occurred retrieving event type ");
-                    message.Append(sessionEvent);
-                    message.Append(crlf);
-                    message.Append(ex.Message);
-                    message.Append(crlf);
-                    message.Append(ex.StackTrace);
-                    message.Append(crlf);
+                    AddLineToMessage(message, sessionEvent);
+                    AddLineToMessage(message, ex.Message);
+                    AddLineToMessage(message, ex.StackTrace);
                 }
-                if (eventType != null)
+                if (eventType != null && eventType.TriggersEvent)
                 {
                     if (Logger.Instance.ShouldLog(DebugLevels.Debug))
                     {
-                        message.Append("Event type not null");
-                        message.Append(crlf);
+                        AddLineToMessage(message, "Event type not null");
                     }
                     if (!eventType.IsLoggedOn)
                     {
                         if (Logger.Instance.ShouldLog(DebugLevels.Debug))
                         {
-                            message.Append("Log off event");
-                            message.Append(crlf);
+                            AddLineToMessage(message, "Log off event");
                         }
                         if (string.IsNullOrEmpty(userName) && currentPerson == null)
                         {
@@ -328,6 +340,19 @@ namespace LogonTimes
                             if (currentPerson == null || !userName.Equals(currentPerson.LogonName))
                             {
                                 currentPerson = userManagement.GetPersonDetail(userName);
+                                if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+                                {
+                                    message.Append("Just set current user (Not logon event): ");
+                                    if (currentPerson == null)
+                                    {
+                                        message.Append("(Not set)");
+                                    }
+                                    else
+                                    {
+                                        message.Append(currentPerson.LogonName);
+                                    }
+                                    message.Append(crlf);
+                                }
                                 currentEvent = null;    //We don't want to overwrite any previously saved events, so force the creation of a new one
                             }
                         }
@@ -349,21 +374,33 @@ namespace LogonTimes
                     }
                     if (Logger.Instance.ShouldLog(DebugLevels.Debug))
                     {
-                        message.Append("Log on event");
-                        message.Append(crlf);
+                        AddLineToMessage(message, "Log on event");
                     }
                     if (string.IsNullOrEmpty(userName))
                     {
                         if (Logger.Instance.ShouldLog(DebugLevels.Debug))
                         {
-                            message.Append("Username empty");
-                            message.Append(crlf);
+                            AddLineToMessage(message, "Username empty");
                         }
                         return;     //Can't do anything here.  unlikely to happen anyway as the only events with no name appear to be logoff events
                     }
                     currentPerson = userManagement.GetPersonDetail(userName);
+                    if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+                    {
+                        message.Append("Just set current user (end of NewSessionEvent): ");
+                        if (currentPerson == null)
+                        {
+                            message.Append("(Not set)");
+                        }
+                        else
+                        {
+                            message.Append(currentPerson.LogonName);
+                        }
+                        message.Append(crlf);
+                    }
                     CreateCurrentEvent(eventType.EventTypeId);
                     CreateCurrentEvent(pendingEventId);
+                    logoffMessageGiven = false;
                     tenMinuteWarningIssued = false;
                     fiveMinuteWarningIssued = false;
                     CheckUserState();
@@ -372,18 +409,16 @@ namespace LogonTimes
             catch (Exception ex)
             {
                 message.Append("Error occurred in NewSessionEvent ");
-                message.Append(sessionEvent);
-                message.Append(crlf);
-                message.Append(ex.Message);
-                message.Append(crlf);
-                message.Append(ex.StackTrace);
-                message.Append(crlf);
+                AddLineToMessage(message, sessionEvent);
+                AddLineToMessage(message, ex.Message);
+                AddLineToMessage(message, ex.StackTrace);
             }
             Logger.Instance.Log(message.ToString(), DebugLevels.Error);
         }
 
         public void UpdateLogins()
         {
+            logoffMessageGiven = false;
             var message = new StringBuilder();
             message.Append("Update logins");
             bool refreshLogonTimes = false;
