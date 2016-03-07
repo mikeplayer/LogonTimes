@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace LogonTimes.Logging
 {
-    public class Logger
+    public class Logger : IDisposable
     {
         private static readonly Logger instance = new Logger();
         private EventLog eventLog;
         private int currentLogLevel;
+        private const string crlf = "\r\n";
 
         #region constructors
         private Logger()
@@ -24,6 +26,27 @@ namespace LogonTimes.Logging
                 return instance;
             }
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    eventLog.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
         #endregion
 
         #region Public methods
@@ -35,9 +58,23 @@ namespace LogonTimes.Logging
             }
         }
 
+        public void LogException(string header, DebugLevels debugLevel, Exception ex)
+        {
+            var message = new StringBuilder();
+            message.Append(header);
+            AddLineToMessage(message, ex.Message);
+            AddLineToMessage(message, ex.StackTrace);
+        }
+
         public bool ShouldLog(DebugLevels debugLevel)
         {
             return (currentLogLevel >= (int)debugLevel);
+        }
+
+        public void AddLineToMessage(StringBuilder stringBuilder, string message)
+        {
+            stringBuilder.Append(message);
+            stringBuilder.Append(crlf);
         }
         #endregion
 

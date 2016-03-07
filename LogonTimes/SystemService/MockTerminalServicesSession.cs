@@ -8,6 +8,7 @@ namespace LogonTimes.SystemService
 {
     public class MockTerminalServicesSession : ITerminalServicesSession
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public int ClientBuildNumber
         {
             get
@@ -16,6 +17,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public IClientDisplay ClientDisplay
         {
             get
@@ -24,6 +26,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public IPAddress ClientIPAddress
         {
             get
@@ -32,6 +35,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public string ClientName
         {
             get
@@ -40,6 +44,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public ConnectionState ConnectionState
         {
             get
@@ -48,6 +53,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public DateTime? ConnectTime
         {
             get
@@ -56,6 +62,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public DateTime? CurrentTime
         {
             get
@@ -64,6 +71,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public DateTime? DisconnectTime
         {
             get
@@ -72,6 +80,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public string DomainName
         {
             get
@@ -80,6 +89,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public TimeSpan IdleTime
         {
             get
@@ -88,6 +98,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public DateTime? LastInputTime
         {
             get
@@ -96,6 +107,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public DateTime? LoginTime
         {
             get
@@ -104,6 +116,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public ITerminalServer Server
         {
             get
@@ -112,6 +125,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public int SessionId
         {
             get
@@ -120,6 +134,7 @@ namespace LogonTimes.SystemService
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public NTAccount UserAccount
         {
             get
@@ -133,6 +148,7 @@ namespace LogonTimes.SystemService
             get; set;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
         public string WindowStationName
         {
             get

@@ -2,6 +2,9 @@
 using System.ServiceProcess;
 using System.Windows.Forms;
 using LogonTimes.UI;
+using System.Security.Principal;
+using System.Diagnostics;
+using LogonTimes.Logging;
 
 namespace LogonTimes
 {
@@ -17,6 +20,25 @@ namespace LogonTimes
             {
                 if (args[0].Equals("/configure"))
                 {
+                    WindowsPrincipal pricipal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+                    bool hasAdministrativeRight = pricipal.IsInRole(WindowsBuiltInRole.Administrator);
+                    if (!hasAdministrativeRight)
+                    {
+                        ProcessStartInfo startInfo = new ProcessStartInfo();
+                        startInfo.UseShellExecute = true;
+                        startInfo.WorkingDirectory = Environment.CurrentDirectory;
+                        startInfo.FileName = Application.ExecutablePath;
+                        startInfo.Verb = "runas";
+                        try
+                        {
+                            Process p = Process.Start(startInfo);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.LogException("Error starting configuration process", DebugLevels.Error, ex);
+                        }
+                        return;
+                    }
                     Application.EnableVisualStyles();
                     Application.Run(new LogonTimesConfiguration());
                     return;
@@ -36,12 +58,4 @@ namespace LogonTimes
             ServiceBase.Run(ServicesToRun);
         }
     }
-    /*
-    SessionUnlock
-    SessionLock
-    ConsoleConnect
-    ConsoleDisconnect
-    SessionLogon
-    SessionLogoff
-    */
 }
