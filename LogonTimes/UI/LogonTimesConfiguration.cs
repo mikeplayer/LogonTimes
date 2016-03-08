@@ -21,6 +21,8 @@ namespace LogonTimes.UI
         private SourceGrid.Cells.Views.Cell blockedCellView;
         private WhenAllowedValuesList whenAllowedValuesList = new WhenAllowedValuesList();
         private WhenAllowedValues currentHoverTarget = null;
+        private delegate void SetPersonCallback(Person person);
+        private delegate void SetLoadingCallback(bool isLoading);
 
         #region Initialisation
         public LogonTimesConfiguration()
@@ -41,17 +43,63 @@ namespace LogonTimes.UI
             }
         }
 
-        private void LoadUsers()
+        private void AddPerson(Person person)
         {
-            var people = userManagement.LoadPeople();
-
-            foreach (var person in people)
+            if (listPeople.InvokeRequired)
+            {
+                SetPersonCallback personCallback = new SetPersonCallback(AddPerson);
+                Invoke(personCallback, new object[] { person });
+            }
+            else
             {
                 ListViewItem personItem = new ListViewItem(person.LogonName);
                 personItem.Checked = userManagement.PersonIsRestricted(person);
                 listPeople.Items.Add(personItem);
             }
+        }
+
+        private void LoadUsers()
+        {
+            SetIsLoadingPeople(true);
+            userManagement.PersonLoadedFromUserAccount += UserManagementPersonLoaded;
+            userManagement.PersonLoadingComplete += UserManagementPersonLoadingComplete;
+            var people = userManagement.LoadPeople();
+
+            foreach (var person in people)
+            {
+                AddPerson(person);
+            }
             SetItemAvailability();
+        }
+
+        private void SetIsLoadingPeople(bool isLoading)
+        {
+            if (listPeople.InvokeRequired)
+            {
+                var loadingCallback = new SetLoadingCallback(SetIsLoadingPeople);
+                Invoke(loadingCallback, new object[] { isLoading });
+            }
+            else
+            {
+                if (isLoading)
+                {
+                    listPeople.Columns[0].Text = "Person (loading...)";
+                }
+                else
+                {
+                    listPeople.Columns[0].Text = "Person";
+                }
+            }
+        }
+
+        private void UserManagementPersonLoadingComplete(object sender, EventArgs e)
+        {
+            SetIsLoadingPeople(false);
+        }
+
+        private void UserManagementPersonLoaded(object sender, PersonLoadedEventArgs e)
+        {
+            AddPerson(e.PersonLoaded);
         }
 
         private void LogonTimesConfiguration_Load(object sender, EventArgs e)
@@ -330,8 +378,10 @@ namespace LogonTimes.UI
 
         private void listPeople_SelectedIndexChanged(object sender, EventArgs e)
         {
+            Cursor.Current = Cursors.WaitCursor;
             SetItemAvailability();
             LoadPersonData();
+            Cursor.Current = Cursors.Default;
         }
 
         private void btnCancelChanges_Click(object sender, EventArgs e)

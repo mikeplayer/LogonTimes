@@ -98,6 +98,7 @@
     <Compile Include="LogonTimes.Designer.cs">
       <DependentUpon>LogonTimes.cs</DependentUpon>
     </Compile>
+    <Compile Include="PersonLoadedEventArgs.cs" />
     <Compile Include="UI\LogonTimesConfiguration.cs">
       <SubType>Form</SubType>
     </Compile>

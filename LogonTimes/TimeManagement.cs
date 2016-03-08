@@ -201,7 +201,7 @@ namespace LogonTimes
                 DateTime currentDateTime = DateTime.Now;
                 DateTime fiveMinuteWarning = currentDateTime.AddMinutes(5);
                 DateTime tenMinuteWarning = currentDateTime.AddMinutes(10);
-                if (!logoffMessageGiven || !GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0)
+                if (!logoffMessageGiven && (!GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0))
                 //if (!GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0)
                 {
                     LogSessionOff();
@@ -405,15 +405,16 @@ namespace LogonTimes
 
         public void UpdateLogins()
         {
+            if (currentEvent == null)
+            {
+                return;
+            }
             logoffMessageGiven = false;
             var message = new StringBuilder();
             message.Append("Update logins");
             bool refreshLogonTimes = false;
             var newDateTime = DateTime.Now;
-            if (currentEvent != null)
-            {
-                currentEvent.EventTime = DateTime.Now;
-            }
+            currentEvent.EventTime = DateTime.Now;
             if (newDateTime.Day != currentDateTime.Day)
             {
                 message.Append("New day");

@@ -4,6 +4,7 @@ using System.Linq;
 using LinqToDB;
 using LinqToDB.Data;
 using LogonTimes.Logging;
+using System.Threading;
 
 namespace LogonTimes.DataModel
 {
@@ -18,6 +19,11 @@ namespace LogonTimes.DataModel
         private List<SystemSettingType> systemSettingTypes;
         private List<TimePeriod> timePeriods;
         private static readonly DataAccess instance = new DataAccess();
+        public event EventHandler<PersonLoadedEventArgs> PersonModificationFinished;
+        private List<Person> peopleToBeRestricted = new List<Person>();
+        private object restrictedLock = new object();
+        private List<Person> peopleToBeUnrestricted = new List<Person>();
+        private object unrestrictedLock = new object();
 
         private DataAccess() { }
 
@@ -272,8 +278,18 @@ namespace LogonTimes.DataModel
             }
         }
 
-        public void MakePersonRestricted(Person person)
+        private void MakePersonRestrictedDetail()
         {
+            if (!peopleToBeRestricted.Any())
+            {
+                return;
+            }
+            Person person;
+            lock (restrictedLock)
+            {
+                person = peopleToBeRestricted.First();
+                peopleToBeRestricted.Remove(person);
+            }
             using (var db = new LogonTimesDB())
             {
                 if (!person.HoursPerDay.Any())
@@ -312,10 +328,33 @@ namespace LogonTimes.DataModel
                     logonTimeAlloweds = null;    //Make sure it gets reloaded after the bulk copy
                 }
             }
+            EventHandler<PersonLoadedEventArgs> handler = PersonModificationFinished;
+            if (handler != null)
+            {
+                handler(this, new PersonLoadedEventArgs(person));
+            }
         }
 
-        public void MakePersonUnrestricted(Person person)
+        public void MakePersonRestricted(Person person)
         {
+            peopleToBeRestricted.Add(person);
+            Thread restrictPersonThread = new Thread(MakePersonRestrictedDetail);
+            restrictPersonThread.IsBackground = true;
+            restrictPersonThread.Start();
+        }
+
+        private void MakePersonUnrestrictedDetail()
+        {
+            if (!peopleToBeUnrestricted.Any())
+            {
+                return;
+            }
+            Person person;
+            lock (unrestrictedLock)
+            {
+                person = peopleToBeUnrestricted.First();
+                peopleToBeUnrestricted.Remove(person);
+            }
             using (var db = new LogonTimesDB())
             {
                 if (person.HoursPerDay.Any())
@@ -333,6 +372,19 @@ namespace LogonTimes.DataModel
                     logonTimeAlloweds = null;   //Make sure it gets reloaded after the bulk delete
                 }
             }
+            EventHandler<PersonLoadedEventArgs> handler = PersonModificationFinished;
+            if (handler != null)
+            {
+                handler(this, new PersonLoadedEventArgs(person));
+            }
+        }
+
+        public void MakePersonUnrestricted(Person person)
+        {
+            peopleToBeUnrestricted.Add(person);
+            Thread unrestrictPersonThread = new Thread(MakePersonUnrestrictedDetail);
+            unrestrictPersonThread.IsBackground = true;
+            unrestrictPersonThread.Start();
         }
 
         public Person GetPerson(int personId)

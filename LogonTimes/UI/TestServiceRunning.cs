@@ -1,13 +1,6 @@
 ﻿using LogonTimes.DataModel;
 using LogonTimes.SystemService;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LogonTimes.UI
@@ -23,7 +16,7 @@ namespace LogonTimes.UI
         public TestServiceRunning()
         {
             InitializeComponent();
-            timer.Interval = 60000;
+            timer.Interval = 15000;
             timer.Elapsed += Timer_Elapsed;
             LoadEventTypes();
         }
