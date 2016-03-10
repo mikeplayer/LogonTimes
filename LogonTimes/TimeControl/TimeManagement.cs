@@ -6,12 +6,14 @@ using System.Threading;
 using System.Text;
 using LogonTimes.DataModel;
 using LogonTimes.Logging;
+using LogonTimes.People;
+using LogonTimes.IoC;
 
-namespace LogonTimes
+namespace LogonTimes.TimeControl
 {
-    public class TimeManagement
+    public class TimeManagement : ITimeManagement
     {
-        private UserManagement userManagement = new UserManagement();
+        private IUserManagement userManagement;
         private List<LogonTime> logonTimesToday;
         private ITerminalServicesSession currentSession = null;
         private DateTime currentDateTime = DateTime.Now;
@@ -26,6 +28,7 @@ namespace LogonTimes
         #region constructors
         public TimeManagement()
         {
+            userManagement = IocRegistry.GetInstance<IUserManagement>();
             pendingEventId = DataAccess.Instance.EventTypes.First(x => x.EventTypeName.Equals("Pending")).EventTypeId;
             newDayLogonEventId = DataAccess.Instance.EventTypes.First(x => x.EventTypeName.Equals("NewDayLogon")).EventTypeId;
             LoadLogonTimes();
@@ -50,7 +53,7 @@ namespace LogonTimes
             return null;
         }
 
-        private UserManagement UserManagement
+        private IUserManagement UserManagement
         {
             get
             {

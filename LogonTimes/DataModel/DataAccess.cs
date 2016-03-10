@@ -19,11 +19,13 @@ namespace LogonTimes.DataModel
         private List<SystemSettingType> systemSettingTypes;
         private List<TimePeriod> timePeriods;
         private static readonly DataAccess instance = new DataAccess();
-        public event EventHandler<PersonLoadedEventArgs> PersonModificationFinished;
+        public event EventHandler<PersonEventArgs> PersonModificationFinished;
         private List<Person> peopleToBeRestricted = new List<Person>();
         private object restrictedLock = new object();
         private List<Person> peopleToBeUnrestricted = new List<Person>();
         private object unrestrictedLock = new object();
+        private List<LogonTimeAllowed> logonTimeAllowedForUpdate = new List<LogonTimeAllowed>();
+        private object logonTimeLock = new object();
 
         private DataAccess() { }
 
@@ -51,6 +53,22 @@ namespace LogonTimes.DataModel
                 timePeriods = null;
                 configUpdated.SystemSetting = false.ToString();
                 Instance.UpdateSystemSettingDetail(configUpdated);
+            }
+        }
+
+        public bool StillWorking
+        {
+            get
+            {
+                return (WorkingItemCount > 0);
+            }
+        }
+
+        public int WorkingItemCount
+        {
+            get
+            {
+                return peopleToBeRestricted.Count + peopleToBeUnrestricted.Count + logonTimeAllowedForUpdate.Count;
             }
         }
 
@@ -235,12 +253,29 @@ namespace LogonTimes.DataModel
             }
         }
 
+        private void UpdateLogonTimeAllowedDetail()
+        {
+            lock (logonTimeLock)
+            {
+                if (!logonTimeAllowedForUpdate.Any())
+                {
+                    return;
+                }
+                var logonTimeAllowed = logonTimeAllowedForUpdate.First();
+                logonTimeAllowedForUpdate.Remove(logonTimeAllowed);
+                using (var db = new LogonTimesDB())
+                {
+                    db.Update(logonTimeAllowed);
+                }
+            }
+        }
+
         public void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
         {
-            using (var db = new LogonTimesDB())
-            {
-                db.Update(logonTimeAllowed);
-            }
+            logonTimeAllowedForUpdate.Add(logonTimeAllowed);
+            Thread restrictPersonThread = new Thread(UpdateLogonTimeAllowedDetail);
+            restrictPersonThread.IsBackground = true;
+            restrictPersonThread.Start();
         }
 
         public void DeleteLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
@@ -289,49 +324,49 @@ namespace LogonTimes.DataModel
             {
                 person = peopleToBeRestricted.First();
                 peopleToBeRestricted.Remove(person);
-            }
-            using (var db = new LogonTimesDB())
-            {
-                if (!person.HoursPerDay.Any())
+                using (var db = new LogonTimesDB())
                 {
-                    var hoursPerDayList = new List<HoursPerDay>();
-                    foreach (var day in DaysOfWeek)
+                    if (!person.HoursPerDay.Any())
                     {
-                        var hoursPerDay = new HoursPerDay
+                        var hoursPerDayList = new List<HoursPerDay>();
+                        foreach (var day in DaysOfWeek)
                         {
-                            PersonId = person.PersonId,
-                            DayNumber = day.DayNumber
-                        };
-                        hoursPerDayList.Add(hoursPerDay);
-                    }
-                    db.BulkCopy(hoursPerDayList);
-                    hoursPerDays = null;    //Make sure it gets reloaded after the bulk copy
-                }
-                if (!person.LogonTimesAllowed.Any())
-                {
-                    var logonTimeAllowedList = new List<LogonTimeAllowed>();
-                    foreach (var day in DaysOfWeek)
-                    {
-                        foreach (var timePeriod in TimePeriods)
-                        {
-                            var loginTimeAllowed = new LogonTimeAllowed
+                            var hoursPerDay = new HoursPerDay
                             {
                                 PersonId = person.PersonId,
-                                DayNumber = day.DayNumber,
-                                TimePeriodId = timePeriod.TimePeriodId,
-                                Permitted = true
+                                DayNumber = day.DayNumber
                             };
-                            logonTimeAllowedList.Add(loginTimeAllowed);
+                            hoursPerDayList.Add(hoursPerDay);
                         }
+                        db.BulkCopy(hoursPerDayList);
+                        hoursPerDays = null;    //Make sure it gets reloaded after the bulk copy
                     }
-                    db.BulkCopy(logonTimeAllowedList);
-                    logonTimeAlloweds = null;    //Make sure it gets reloaded after the bulk copy
+                    if (!person.LogonTimesAllowed.Any())
+                    {
+                        var logonTimeAllowedList = new List<LogonTimeAllowed>();
+                        foreach (var day in DaysOfWeek)
+                        {
+                            foreach (var timePeriod in TimePeriods)
+                            {
+                                var loginTimeAllowed = new LogonTimeAllowed
+                                {
+                                    PersonId = person.PersonId,
+                                    DayNumber = day.DayNumber,
+                                    TimePeriodId = timePeriod.TimePeriodId,
+                                    Permitted = true
+                                };
+                                logonTimeAllowedList.Add(loginTimeAllowed);
+                            }
+                        }
+                        db.BulkCopy(logonTimeAllowedList);
+                        logonTimeAlloweds = null;    //Make sure it gets reloaded after the bulk copy
+                    }
                 }
             }
-            EventHandler<PersonLoadedEventArgs> handler = PersonModificationFinished;
+            EventHandler<PersonEventArgs> handler = PersonModificationFinished;
             if (handler != null)
             {
-                handler(this, new PersonLoadedEventArgs(person));
+                handler(this, new PersonEventArgs(person));
             }
         }
 
@@ -372,10 +407,10 @@ namespace LogonTimes.DataModel
                     logonTimeAlloweds = null;   //Make sure it gets reloaded after the bulk delete
                 }
             }
-            EventHandler<PersonLoadedEventArgs> handler = PersonModificationFinished;
+            EventHandler<PersonEventArgs> handler = PersonModificationFinished;
             if (handler != null)
             {
-                handler(this, new PersonLoadedEventArgs(person));
+                handler(this, new PersonEventArgs(person));
             }
         }
 

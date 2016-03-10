@@ -5,11 +5,11 @@ using LogonTimes.DataModel;
 using System;
 using System.Threading;
 
-namespace LogonTimes
+namespace LogonTimes.People
 {
-    public class UserManagement
+    public class UserManagement : IUserManagement
     {
-        public event EventHandler<PersonLoadedEventArgs> PersonLoadedFromUserAccount;
+        public event EventHandler<PersonEventArgs> PersonLoadedFromUserAccount;
         public event EventHandler PersonLoadingComplete;
         private List<Person> peopleBeingModified = new List<Person>();
 
@@ -18,9 +18,9 @@ namespace LogonTimes
             DataAccess.Instance.PersonModificationFinished += DataAccessPersonModificationFinished;
         }
 
-        private void DataAccessPersonModificationFinished(object sender, PersonLoadedEventArgs e)
+        private void DataAccessPersonModificationFinished(object sender, PersonEventArgs e)
         {
-            peopleBeingModified.Remove(e.PersonLoaded);
+            peopleBeingModified.Remove(e.Person);
         }
 
         public List<Person> LoadPeople()
@@ -46,10 +46,10 @@ namespace LogonTimes
                     Person person = new Person();
                     person.LogonName = personName;
                     DataAccess.Instance.AddPerson(person);
-                    EventHandler<PersonLoadedEventArgs> handler = PersonLoadedFromUserAccount;
+                    EventHandler<PersonEventArgs> handler = PersonLoadedFromUserAccount;
                     if (handler != null)
                     {
-                        handler(this, new PersonLoadedEventArgs(person));
+                        handler(this, new PersonEventArgs(person));
                     }
                 }
             }
@@ -58,6 +58,11 @@ namespace LogonTimes
             {
                 completeHandler(this, new EventArgs());
             }
+        }
+
+        public void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
+        {
+            DataAccess.Instance.UpdateLogonTimeAllowed(logonTimeAllowed);
         }
 
         public Person GetPersonDetail(string personName)

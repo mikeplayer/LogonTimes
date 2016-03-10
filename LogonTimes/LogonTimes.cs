@@ -3,6 +3,8 @@ using System.ServiceProcess;
 using System.IO;
 using Cassia;
 using LogonTimes.Logging;
+using LogonTimes.TimeControl;
+using LogonTimes.IoC;
 
 namespace LogonTimes
 {
@@ -10,12 +12,13 @@ namespace LogonTimes
     {
 
         private const string crlf = "\r\n";
-        private TimeManagement timeManagement = new TimeManagement();
+        private ITimeManagement timeManagement;
         System.Timers.Timer timer = new System.Timers.Timer();
 
         public LogonTimes()
         {
             InitializeComponent();
+            timeManagement = IocRegistry.GetInstance<ITimeManagement>();
             timer.Elapsed += Timer_Elapsed;
             timer.Interval = 60000;
         }

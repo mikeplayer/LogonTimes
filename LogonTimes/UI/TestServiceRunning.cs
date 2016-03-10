@@ -1,5 +1,7 @@
 ﻿using LogonTimes.DataModel;
+using LogonTimes.IoC;
 using LogonTimes.SystemService;
+using LogonTimes.TimeControl;
 using System;
 using System.Windows.Forms;
 
@@ -8,7 +10,7 @@ namespace LogonTimes.UI
     public partial class TestServiceRunning : Form
     {
         delegate void SetTextCallback(string text);
-        private TimeManagement timeManagement = new TimeManagement();
+        private ITimeManagement timeManagement;
         System.Timers.Timer timer = new System.Timers.Timer();
         bool timerRunning = false;
         int noOfTicks = 0;
@@ -16,6 +18,7 @@ namespace LogonTimes.UI
         public TestServiceRunning()
         {
             InitializeComponent();
+            timeManagement = IocRegistry.GetInstance<ITimeManagement>();
             timer.Interval = 15000;
             timer.Elapsed += Timer_Elapsed;
             LoadEventTypes();
