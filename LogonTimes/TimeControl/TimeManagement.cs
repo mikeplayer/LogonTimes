@@ -73,6 +73,11 @@ namespace LogonTimes.TimeControl
             {
                 Logger.Instance.AddLineToMessage(message, string.Format("Current person: {0}", currentPerson.LogonName));
             }
+            if (Logger.Instance.ShouldLog(DebugLevels.Debug))
+            {
+                var eventType = DataAccess.Instance.GetEventType(eventTypeId);
+                Logger.Instance.AddLineToMessage(message, eventType.EventTypeName);
+            }
             if (currentPerson != null && currentPerson.IsRestricted)
             {
                 Logger.Instance.AddLineToMessage(message, "User is restricted");
@@ -137,8 +142,8 @@ namespace LogonTimes.TimeControl
                 , RemoteMessageBoxDefaultButton.Button1
                 , RemoteMessageBoxOptions.None
                 , TimeSpan.FromSeconds(3)
-                , false);
-            Thread.Sleep(3000);
+                , true);
+            Thread.Sleep(500);
             currentSession.Disconnect(false);
         }
 
