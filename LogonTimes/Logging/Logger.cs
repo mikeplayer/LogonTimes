@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LogonTimes.Logging
 {
-    public class Logger : IDisposable
+    public class Logger : IDisposable, ILogger
     {
         private static readonly Logger instance = new Logger();
         private EventLog eventLog;
