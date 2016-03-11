@@ -12,13 +12,16 @@ Action AfterGenerateLinqToDBModel  = () => {};
 
 Func<Table,MemberBase> GenerateProviderSpecificTable = t => null;
 
-bool GenerateObsoleteAttributeForAliases = false;
-bool GenerateFindExtensions = true;
-bool IsCompactColumns       = true;
-bool IsCompactColumnAliases = true;
-bool GenerateDataTypes      = false;
-bool GenerateDbTypes        = false;
-bool GenerateSchemaAsType   = false;
+bool  GenerateObsoleteAttributeForAliases = false;
+bool  GenerateFindExtensions    = true;
+bool  IsCompactColumns          = true;
+bool  IsCompactColumnAliases    = true;
+bool  GenerateDataTypes         = false;
+bool? GenerateLengthProperty    = null;
+bool? GeneratePrecisionProperty = null;
+bool? GenerateScaleProperty     = null;
+bool  GenerateDbTypes           = false;
+bool  GenerateSchemaAsType      = false;
 
 string SchemaNameSuffix          = "Schema";
 string SchemaDataContextTypeName = "DataContext";
@@ -54,6 +57,9 @@ void GenerateTypesFromMetadata()
 			Type            = new Class(typeName + SchemaNameSuffix) { IsStatic = true },
 			Tables          = gr.ToList(),
 			DataContext     = new Class(SchemaDataContextTypeName),
+			Procedures      = new MemberGroup(),
+			Functions       = new MemberGroup(),
+			TableFunctions  = new MemberGroup { Region = "Table Functions" },
 		}
 	).ToDictionary(t => t.Name);
 
@@ -112,7 +118,7 @@ void GenerateTypesFromMetadata()
 		}
 	}
 
-	foreach (var t in Tables.Values.OrderBy(tbl => tbl.IsProviderSpecific).ThenBy(tbl=> tbl.TypeName))
+	foreach (var t in Tables.Values.OrderBy(tbl => tbl.IsProviderSpecific).ThenBy(tbl => tbl.TypeName))
 	{
 		Action<Class> addType = tp => Model.Types.Add(tp);
 		var props             = defProps;
@@ -199,6 +205,7 @@ void GenerateTypesFromMetadata()
 		var nameMaxLen     = t.Columns.Values.Max  (c => c.MemberName == c.ColumnName ? 0 : c.ColumnName.Length);
 		var dbTypeMaxLen   = t.Columns.Values.Max  (c => c.ColumnType.Length);
 		var dataTypeMaxLen = t.Columns.Values.Max  (c => c.DataType.Length);
+		var dataTypePrefix = t.Columns.Values.Any  (c => c.MemberName == "DataType") ? "LinqToDB." : "";
 
 		foreach (var c in t.Columns.Values)
 		{
@@ -231,16 +238,28 @@ void GenerateTypesFromMetadata()
 			if (GenerateDataTypes)
 			{
 				var space = new string(' ', dataTypeMaxLen - c.DataType.Length);
-
-				ca.Parameters.Add("DataType=" + c.DataType + space);
-
-				if (c.Length    != null) ca.Parameters.Add("Length="    + (c.Length == int.MaxValue ? "int.MaxValue" : c.Length.ToString()));
-				if (c.Precision != null) ca.Parameters.Add("Precision=" + c.Precision);
-				if (c.Scale     != null) ca.Parameters.Add("Scale="     + c.Scale);
-
+				ca.Parameters.Add("DataType=" + dataTypePrefix + c.DataType + space);
 				canBeReplaced = false;
 			}
 
+			if(GenerateDataTypes && !GenerateLengthProperty.HasValue || GenerateLengthProperty == true)
+			{
+				if (c.Length    != null) ca.Parameters.Add("Length="    + (c.Length == int.MaxValue ? "int.MaxValue" : c.Length.ToString()));
+				canBeReplaced = false;
+			}
+
+			if (GenerateDataTypes && !GeneratePrecisionProperty.HasValue || GeneratePrecisionProperty == true)
+			{
+				if (c.Precision != null) ca.Parameters.Add("Precision=" + c.Precision);
+				canBeReplaced = false;
+			}
+
+			if(GenerateDataTypes && !GenerateScaleProperty.HasValue || GenerateScaleProperty == true)
+			{
+				if (c.Scale     != null) ca.Parameters.Add("Scale=" + c.Scale);
+				canBeReplaced = false;
+			}
+			
 			if (c.SkipOnInsert && !c.IsIdentity)
 			{
 				ca.Parameters.Add("SkipOnInsert=true");
@@ -250,6 +269,12 @@ void GenerateTypesFromMetadata()
 			if (c.SkipOnUpdate && !c.IsIdentity)
 			{
 				ca.Parameters.Add("SkipOnUpdate=true");
+				canBeReplaced = false;
+			}
+
+			if (c.IsDiscriminator)
+			{
+				ca.Parameters.Add("IsDiscriminator=true");
 				canBeReplaced = false;
 			}
 
@@ -451,10 +476,41 @@ void GenerateTypesFromMetadata()
 		var tabfs = new MemberGroup { Region = "Table Functions" };
 
 		foreach (var p in Procedures.Values.Where(
-			proc => proc.IsLoaded ||
-				(proc.IsFunction && !proc.IsTableFunction)))
+			proc => proc.IsLoaded || proc.IsFunction && !proc.IsTableFunction ||
+			proc.IsTableFunction && proc.ResultException != null
+			))
 		{
+			Action<MemberGroup> addProcs = tp => procs.Members.Add(tp);
+			Action<MemberGroup> addFuncs = tp => funcs.Members.Add(tp);
+			Action<MemberGroup> addTabfs = tp => tabfs.Members.Add(tp);
+
+			var thisDataContext = "this";
+
+			var schema = p.Schema != null && schemas.ContainsKey(p.Schema) ? schemas[p.Schema] : null;
+
+			if (schema != null)
+			{
+				var si = schemas[p.Schema];
+
+				addProcs        = tp => si.Procedures.    Members.Add(tp);
+				addFuncs        = tp => si.Functions.     Members.Add(tp);
+				addTabfs        = tp => si.TableFunctions.Members.Add(tp);
+				thisDataContext = "_dataContext";
+			}
+
 			var proc = new MemberGroup { Region = p.Name };
+
+			     if (!p.IsFunction)     addProcs(proc);
+			else if (p.IsTableFunction) addTabfs(proc);
+			else                        addFuncs(proc);
+
+			if (p.ResultException != null)
+			{
+				proc.Errors.Add(p.ResultException.Message);
+				continue;
+			}
+
+			proc.Members.Add(p);
 
 			if (p.IsTableFunction)
 			{
@@ -488,7 +544,7 @@ void GenerateTypesFromMetadata()
 
 			if (p.IsTableFunction)
 			{
-				var body = string.Format("return this.GetTable<{0}>(this, (MethodInfo)MethodBase.GetCurrentMethod()", p.ResultTable.TypeName);
+				var body = string.Format("return " + thisDataContext + ".GetTable<{0}>(this, (MethodInfo)MethodBase.GetCurrentMethod()", p.ResultTable.TypeName);
 
 				body += p.ProcParameters.Count == 0 ? ");" : ",";
 
@@ -629,12 +685,6 @@ void GenerateTypesFromMetadata()
 				p.ResultTable.Members.Add(columns);
 				proc.Members.Add(p.ResultTable);
 			}
-
-			proc.Members.Add(p);
-
-			     if (!p.IsFunction)     procs.Members.Add(proc);
-			else if (p.IsTableFunction) tabfs.Members.Add(proc);
-			else                        funcs.Members.Add(proc);
 		}
 
 		if (procs.Members.Count > 0)
@@ -645,6 +695,18 @@ void GenerateTypesFromMetadata()
 
 		if (tabfs.Members.Count > 0)
 			DataContextObject.Members.Add(tabfs);
+
+		foreach (var schema in schemas.Values)
+		{
+			if (schema.Procedures.Members.Count > 0)
+				schema.Type.Members.Add(new Class(DataContextObject.Name + "StoredProcedures", schema.Procedures) { IsStatic = true });
+
+			if (schema.Functions.Members.Count > 0)
+				schema.Type.Members.Add(new Class("SqlFunctions", schema.Functions) { IsStatic = true });
+
+			if (schema.TableFunctions.Members.Count > 0)
+				schema.DataContext.Members.Add(schema.TableFunctions);
+		}
 	}
 
 	if (defTableExtensions.Members.Count > 0)

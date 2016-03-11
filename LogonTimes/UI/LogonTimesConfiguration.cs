@@ -6,15 +6,17 @@ using System.Collections.Generic;
 using DevAge.Drawing;
 using System.Text;
 using LogonTimes.DataModel;
+using LogonTimes.TimeControl;
+using LogonTimes.People;
 using System.Security.Principal;
+using LogonTimes.IoC;
 
 namespace LogonTimes.UI
 {
     public partial class LogonTimesConfiguration : Form
     {
-        private LogonTimesDataContext data = new LogonTimesDataContext();
-        private UserManagement userManagement = new UserManagement();
-        private TimeManagement timeManagement = new TimeManagement();
+        private IUserManagement userManagement;
+        private ITimeManagement timeManagement;
         private bool isLoading = true;
         private int currentFocusItem;
         private SourceGrid.Cells.Views.Cell permittedCellView;
@@ -28,6 +30,8 @@ namespace LogonTimes.UI
         public LogonTimesConfiguration()
         {
             InitializeComponent();
+            timeManagement = IocRegistry.GetInstance<ITimeManagement>();
+            userManagement = IocRegistry.GetInstance<IUserManagement>();
             CheckPermissions();
             LoadUsers();
             SetupLogonTimesGrid();
@@ -97,9 +101,9 @@ namespace LogonTimes.UI
             SetIsLoadingPeople(false);
         }
 
-        private void UserManagementPersonLoaded(object sender, PersonLoadedEventArgs e)
+        private void UserManagementPersonLoaded(object sender, PersonEventArgs e)
         {
-            AddPerson(e.PersonLoaded);
+            AddPerson(e.Person);
         }
 
         private void LogonTimesConfiguration_Load(object sender, EventArgs e)
@@ -376,12 +380,24 @@ namespace LogonTimes.UI
             }
         }
 
+        private void SetWaiting(bool waiting)
+        {
+            if (waiting)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+            }
+            else
+            {
+                Cursor.Current = Cursors.Default;
+            }
+        }
+
         private void listPeople_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Cursor.Current = Cursors.WaitCursor;
+            SetWaiting(true);
             SetItemAvailability();
             LoadPersonData();
-            Cursor.Current = Cursors.Default;
+            SetWaiting(false);
         }
 
         private void btnCancelChanges_Click(object sender, EventArgs e)
@@ -408,6 +424,7 @@ namespace LogonTimes.UI
 
         private void gridWhen_Click(object sender, EventArgs e)
         {
+            SetWaiting(true);
             var startCell = gridWhen[gridWhen.Selection.ActivePosition.Row, gridWhen.Selection.ActivePosition.Column];
             var startCellValue = (WhenAllowedValues)startCell.Value;
             bool startIsPermit = startCellValue.LogonTimeAllowed.Permitted;
@@ -421,12 +438,13 @@ namespace LogonTimes.UI
                     var cell = gridWhen[i, j];
                     var currentCellValue = (WhenAllowedValues)cell.Value;
                     currentCellValue.LogonTimeAllowed.Permitted = !startIsPermit;
-                    DataAccess.Instance.UpdateLogonTimeAllowed(currentCellValue.LogonTimeAllowed);
+                    userManagement.UpdateLogonTimeAllowed(currentCellValue.LogonTimeAllowed);
                     SetBackColour(currentCellValue);
                 }
             }
             gridWhen.Refresh();
             gridWhen.Selection.ResetSelection(false);
+            SetWaiting(false);
         }
 
         private void gridWhen_MouseMove(object sender, MouseEventArgs e)
@@ -466,6 +484,11 @@ namespace LogonTimes.UI
             var configUpdated = SystemSettingTypesEnum.ConfigurationChanged.Detail();
             configUpdated.SystemSetting = true.ToString();
             DataAccess.Instance.UpdateSystemSettingDetail(configUpdated);
+            if (DataAccess.Instance.StillWorking)
+            {
+                var workingItems = new WorkingItems();
+                workingItems.ShowDialog(this);
+            }
         }
         #endregion
 

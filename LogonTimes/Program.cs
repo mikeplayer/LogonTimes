@@ -5,6 +5,8 @@ using LogonTimes.UI;
 using System.Security.Principal;
 using System.Diagnostics;
 using LogonTimes.Logging;
+using StructureMap;
+using LogonTimes.IoC;
 
 namespace LogonTimes
 {
@@ -16,6 +18,7 @@ namespace LogonTimes
         [STAThread]
         static void Main(string[] args)
         {
+            Bootstrapper.BootStrap();
             if (args.Length > 0)
             {
                 if (args[0].Equals("/configure"))
