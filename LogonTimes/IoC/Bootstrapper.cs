@@ -87,8 +87,14 @@ namespace LogonTimes.IoC
                 {
                     scanner.AssemblyContainingType<IUserManagement>();
                     scanner.AssemblyContainingType<ITimeManagement>();
+                    scanner.AssemblyContainingType<IDataAccess>();
                     scanner.WithDefaultConventions();
                 }));
+                iocContainer.Configure(_ =>
+                {
+                    _.ForSingletonOf<IDataAccess>().Use<DataAccess>();
+                    //_.Forward<ILSMSView, IMainWindowProvider>(); //if only Window handle is required (MessageBox owner etc.)
+                });
             }
             catch (Exception ex)
             {
