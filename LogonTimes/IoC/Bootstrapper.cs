@@ -11,20 +11,23 @@ namespace LogonTimes.IoC
     public static class Bootstrapper
     {
         #region Fields
-
-        /// <summary>
-        ///   Object used for internal static synchronisation.
-        /// </summary>
         private static readonly object SyncObj = new object();
-
-        /// <summary>
-        ///   Whether the system has boot strapped.
-        /// </summary>
         private static bool isBootStrapped;
-
+        private static ILogger logger;
         #endregion Fields
 
         #region Methods
+        private static ILogger Logger
+        {
+            get
+            {
+                if (logger == null)
+                {
+                    logger = IocRegistry.GetInstance<ILogger>();
+                }
+                return logger;
+            }
+        }
 
         /// <summary>
         ///   Boot straps the system.
@@ -46,7 +49,7 @@ namespace LogonTimes.IoC
                 {
                     if (!isBootStrapped)
                     {
-                        DoBootStrapping<Registry>(typeExclusion);
+                        DoBootStrapping<StructureMapRegistry>(typeExclusion);
                         isBootStrapped = true;
                     }
                 }
@@ -75,7 +78,7 @@ namespace LogonTimes.IoC
         ///   Performs boot strapping.
         /// </summary>
         /// <typeparam name="T"> The type of IOC Registry to boot strap for. </typeparam>
-        private static void DoBootStrapping<T>(Func<Type, bool> typeExclusion) where T : IRegistry, new()
+        private static void DoBootStrapping<T>(Func<Type, bool> typeExclusion) where T : IStructureMapRegistry, new()
         {
             var iocRegistry = InitialseIocRegistry<T>();
 
@@ -87,18 +90,24 @@ namespace LogonTimes.IoC
                 {
                     scanner.AssemblyContainingType<IUserManagement>();
                     scanner.AssemblyContainingType<ITimeManagement>();
+                    scanner.AssemblyContainingType<IEventManagement>();
                     scanner.AssemblyContainingType<IDataAccess>();
                     scanner.WithDefaultConventions();
                 }));
                 iocContainer.Configure(_ =>
                 {
                     _.ForSingletonOf<IDataAccess>().Use<DataAccess>();
-                    //_.Forward<ILSMSView, IMainWindowProvider>(); //if only Window handle is required (MessageBox owner etc.)
+                    _.Forward<IDataAccess, ITestServiceRunningData>();
+                    _.Forward<IDataAccess, ILogonTimesConfigurationData>();
+                    _.Forward<IDataAccess, IWorkingItemsData>();
+                    _.Forward<IDataAccess, ITimeManagementData>();
+                    _.Forward<IDataAccess, IUserManagementData>();
+                    _.ForSingletonOf<ILogger>().Use<Logger>();
                 });
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogException(string.Format("BaseDir is {0}", AppDomain.CurrentDomain.BaseDirectory), DebugLevels.Error, ex);
+                Logger.LogException(string.Format("BaseDir is {0}", AppDomain.CurrentDomain.BaseDirectory), DebugLevels.Error, ex);
                 throw;
             }
         }
@@ -106,7 +115,7 @@ namespace LogonTimes.IoC
         /// <summary>
         ///   Initialises the IOC registry.
         /// </summary>
-        private static T InitialseIocRegistry<T>() where T : IRegistry, new()
+        private static T InitialseIocRegistry<T>() where T : IStructureMapRegistry, new()
         {
             var result = new T();
             IocRegistry.Instance = result;

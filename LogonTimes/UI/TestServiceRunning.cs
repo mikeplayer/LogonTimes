@@ -10,6 +10,7 @@ namespace LogonTimes.UI
     public partial class TestServiceRunning : Form
     {
         delegate void SetTextCallback(string text);
+        private ITestServiceRunningData dataAccess;
         private ITimeManagement timeManagement;
         System.Timers.Timer timer = new System.Timers.Timer();
         bool timerRunning = false;
@@ -18,6 +19,7 @@ namespace LogonTimes.UI
         public TestServiceRunning()
         {
             InitializeComponent();
+            dataAccess = IocRegistry.GetInstance<ITestServiceRunningData>();
             timeManagement = IocRegistry.GetInstance<ITimeManagement>();
             timer.Interval = 15000;
             timer.Elapsed += Timer_Elapsed;
@@ -54,7 +56,7 @@ namespace LogonTimes.UI
         private void LoadEventTypes()
         {
             cmbEventTypes.Items.Clear();
-            foreach (var eventType in DataAccess.Instance.EventTypes)
+            foreach (var eventType in dataAccess.EventTypes)
             {
                 cmbEventTypes.Items.Add(eventType);
             }

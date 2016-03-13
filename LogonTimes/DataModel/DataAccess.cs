@@ -5,10 +5,18 @@ using LinqToDB;
 using LinqToDB.Data;
 using LogonTimes.Logging;
 using System.Threading;
+using LogonTimes.IoC;
+using LogonTimes.TimeControl;
+using LogonTimes.People;
 
 namespace LogonTimes.DataModel
 {
     public class DataAccess : IDataAccess
+        , ITestServiceRunningData
+        , ILogonTimesConfigurationData
+        , IWorkingItemsData
+        , ITimeManagementData
+        , IUserManagementData
     {
         private List<DayOfWeek> daysOfWeek;
         private List<EventType> eventTypes;
@@ -18,7 +26,6 @@ namespace LogonTimes.DataModel
         private List<Person> persons;
         private List<SystemSettingType> systemSettingTypes;
         private List<TimePeriod> timePeriods;
-        private static readonly DataAccess instance = new DataAccess();
         public event EventHandler<PersonEventArgs> PersonModificationFinished;
         private List<Person> peopleToBeRestricted = new List<Person>();
         private object restrictedLock = new object();
@@ -26,15 +33,13 @@ namespace LogonTimes.DataModel
         private object unrestrictedLock = new object();
         private List<LogonTimeAllowed> logonTimeAllowedForUpdate = new List<LogonTimeAllowed>();
         private object logonTimeLock = new object();
+        private ILogger logger;
+        public readonly DateTime DateStarted;
 
-        private DataAccess() { }
-
-        public static DataAccess Instance
+        public DataAccess()
         {
-            get
-            {
-                return instance;
-            }
+            logger = IocRegistry.GetInstance<ILogger>();
+            DateStarted = DateTime.Now;
         }
 
         public void CheckForUpdates()
@@ -42,7 +47,7 @@ namespace LogonTimes.DataModel
             var configUpdated = SystemSettingTypesEnum.ConfigurationChanged.Detail();
             if (configUpdated.BoolValue.Value)
             {
-                Logger.Instance.Log("Configuration changed - refreshing data", DebugLevels.Debug);
+                logger.Log("Configuration changed - refreshing data", DebugLevels.Debug);
                 daysOfWeek = null;
                 eventTypes = null;
                 hoursPerDays = null;
@@ -52,7 +57,7 @@ namespace LogonTimes.DataModel
                 systemSettingTypes = null;
                 timePeriods = null;
                 configUpdated.SystemSetting = false.ToString();
-                Instance.UpdateSystemSettingDetail(configUpdated);
+                UpdateSystemSettingDetail(configUpdated);
             }
         }
 

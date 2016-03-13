@@ -10,14 +10,15 @@ namespace LogonTimes
 {
     public partial class LogonTimes : ServiceBase
     {
-
         private const string crlf = "\r\n";
         private ITimeManagement timeManagement;
+        private ILogger logger;
         System.Timers.Timer timer = new System.Timers.Timer();
 
         public LogonTimes()
         {
             InitializeComponent();
+            logger = IocRegistry.GetInstance<ILogger>();
             timeManagement = IocRegistry.GetInstance<ITimeManagement>();
             timer.Elapsed += Timer_Elapsed;
             timer.Interval = 60000;
@@ -41,13 +42,13 @@ namespace LogonTimes
         protected override void OnStart(string[] args)
         {
             timer.Start();
-            Logger.Instance.Log("Start", DebugLevels.Info);
+            logger.Log("Start", DebugLevels.Info);
         }
 
         protected override void OnStop()
         {
             timer.Stop();
-            Logger.Instance.Log("Stop", DebugLevels.Info);
+            logger.Log("Stop", DebugLevels.Info);
         }
 
         protected override void OnSessionChange(SessionChangeDescription changeDescription)

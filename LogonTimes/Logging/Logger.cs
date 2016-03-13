@@ -7,24 +7,15 @@ namespace LogonTimes.Logging
 {
     public class Logger : IDisposable, ILogger
     {
-        private static readonly Logger instance = new Logger();
         private EventLog eventLog;
         private int currentLogLevel;
         private const string crlf = "\r\n";
 
         #region constructors
-        private Logger()
+        public Logger()
         {
             currentLogLevel = Properties.Settings.Default.DebugLevel;
             OpenLog();
-        }
-
-        public static Logger Instance
-        {
-            get
-            {
-                return instance;
-            }
         }
 
         #region IDisposable Support

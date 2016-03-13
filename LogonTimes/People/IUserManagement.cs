@@ -18,5 +18,6 @@ namespace LogonTimes.People
         void SetPersonToUnrestricted(string personName);
         void UpdateHoursPerDay(int hoursPerDayId, float? newValue);
         void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed);
+        List<LogonTimeAllowed> LogonTimesAllowed(string userName);
     }
 }

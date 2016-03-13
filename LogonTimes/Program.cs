@@ -19,6 +19,7 @@ namespace LogonTimes
         static void Main(string[] args)
         {
             Bootstrapper.BootStrap();
+            ILogger logger = IocRegistry.GetInstance<ILogger>();
             if (args.Length > 0)
             {
                 if (args[0].Equals("/configure"))
@@ -38,7 +39,7 @@ namespace LogonTimes
                         }
                         catch (Exception ex)
                         {
-                            Logger.Instance.LogException("Error starting configuration process", DebugLevels.Error, ex);
+                            logger.LogException("Error starting configuration process", DebugLevels.Error, ex);
                         }
                         return;
                     }

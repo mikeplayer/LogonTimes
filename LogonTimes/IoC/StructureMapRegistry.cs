@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LogonTimes.IoC
 {
-    public class Registry : IRegistry
+    public class StructureMapRegistry : IStructureMapRegistry
     {
         #region Fields
 
@@ -26,7 +26,7 @@ namespace LogonTimes.IoC
         /// <remarks>
         /// Uses the default container.
         /// </remarks>
-        public Registry() : this(GetContainer()) { }
+        public StructureMapRegistry() : this(GetContainer()) { }
 
         private static IContainer GetContainer()
         {
@@ -37,7 +37,7 @@ namespace LogonTimes.IoC
         /// <summary>
         /// Finalizes an instance of the <see cref="StructureMapIocRegistry"/> class.
         /// </summary>
-        ~Registry()
+        ~StructureMapRegistry()
         {
             // Finalizer calls Dispose(false)
             Dispose(false);
@@ -72,7 +72,7 @@ namespace LogonTimes.IoC
         /// Initializes a new instance of the <see cref="StructureMapIocRegistry" /> class.
         /// </summary>
         /// <param name="container"> The IOC container. </param>
-        public Registry(IContainer container)
+        public StructureMapRegistry(IContainer container)
         {
             this.container = container;
         }

@@ -1,17 +1,20 @@
 ﻿using LogonTimes.DataModel;
+using LogonTimes.IoC;
 using System.Windows.Forms;
 
 namespace LogonTimes.UI
 {
     public partial class WorkingItems : Form
     {
+        private delegate void SetCallback();
+        private IWorkingItemsData dataAccess;
         System.Timers.Timer timer = new System.Timers.Timer();
         int itemsLeft = 0;
-        private delegate void SetCallback();
 
         public WorkingItems()
         {
             InitializeComponent();
+            dataAccess = IocRegistry.GetInstance<IWorkingItemsData>();
             UpdateCount();
             timer.Elapsed += TimerElapsed;
             timer.Interval = 200;
@@ -27,7 +30,7 @@ namespace LogonTimes.UI
             }
             else
             {
-                itemsLeft = DataAccess.Instance.WorkingItemCount;
+                itemsLeft = dataAccess.WorkingItemCount;
                 lblCount.Text = string.Format("There are currently {0} items still processing", itemsLeft);
             }
         }

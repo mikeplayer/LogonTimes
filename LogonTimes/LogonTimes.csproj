@@ -92,9 +92,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataModel\IDataAccess.cs" />
     <Compile Include="IoC\Bootstrapper.cs" />
     <Compile Include="DataModel\DataAccess.cs" />
-    <Compile Include="DataModel\IDataAccess.cs" />
     <Compile Include="DataModel\LogonTimes.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -102,8 +102,8 @@
     </Compile>
     <Compile Include="DataModel\TableExtensions.cs" />
     <Compile Include="IoC\IocRegistry.cs" />
-    <Compile Include="IoC\IRegistry.cs" />
-    <Compile Include="IoC\Registry.cs" />
+    <Compile Include="IoC\IStructureMapRegistry.cs" />
+    <Compile Include="IoC\StructureMapRegistry.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="Logging\DebugLevels.cs" />
@@ -114,7 +114,11 @@
       <DependentUpon>LogonTimes.cs</DependentUpon>
     </Compile>
     <Compile Include="DataModel\PersonEventArgs.cs" />
+    <Compile Include="People\IUserManagementData.cs" />
     <Compile Include="People\IUserManagement.cs" />
+    <Compile Include="TimeControl\EventManagement.cs" />
+    <Compile Include="TimeControl\IEventManagement.cs" />
+    <Compile Include="TimeControl\ITimeManagementData.cs" />
     <Compile Include="TimeControl\ITimeManagement.cs" />
     <Compile Include="UI\LogonTimesConfiguration.cs">
       <SubType>Form</SubType>
@@ -143,6 +147,9 @@
       <DependentUpon>TestServiceRunning.cs</DependentUpon>
     </Compile>
     <Compile Include="TimeControl\TimeManagement.cs" />
+    <Compile Include="UI\UIInterfaces\IWorkingItemsData.cs" />
+    <Compile Include="UI\UIInterfaces\ILogonTimesConfigurationData.cs" />
+    <Compile Include="UI\UIInterfaces\ITestServiceRunningData.cs" />
     <Compile Include="UI\WorkingItems.cs">
       <SubType>Form</SubType>
     </Compile>

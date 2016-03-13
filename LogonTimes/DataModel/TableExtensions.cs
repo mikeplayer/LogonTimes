@@ -3,6 +3,7 @@ using System.Linq;
 using LinqToDB;
 using System;
 using System.Reflection;
+using LogonTimes.IoC;
 
 namespace LogonTimes.DataModel
 {
@@ -29,6 +30,13 @@ namespace LogonTimes.DataModel
     #region Hours per day
     public partial class HoursPerDay
     {
+        private IDataAccess dataAccess;
+
+        public HoursPerDay()
+        {
+            dataAccess = IocRegistry.GetInstance<IDataAccess>();
+        }
+
         public override string ToString()
         {
             return string.Format("{0} {1}", Person.LogonName, HoursAllowed);
@@ -38,7 +46,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.GetPerson(PersonId);
+                return dataAccess.GetPerson(PersonId);
             }
         }
 
@@ -46,7 +54,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.GetDayOfWeek(DayNumber);
+                return dataAccess.GetDayOfWeek(DayNumber);
             }
         }
     }
@@ -55,6 +63,13 @@ namespace LogonTimes.DataModel
     #region Logon time
     public partial class LogonTime
     {
+        private IDataAccess dataAccess;
+
+        public LogonTime()
+        {
+            dataAccess = IocRegistry.GetInstance<IDataAccess>();
+        }
+
         public override string ToString()
         {
             return string.Format("{0} {1} {2}", Person.LogonName, EventType.EventTypeName, EventTime);
@@ -64,7 +79,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.GetPerson(PersonId);
+                return dataAccess.GetPerson(PersonId);
             }
         }
 
@@ -72,7 +87,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.GetEventType(EventTypeId);
+                return dataAccess.GetEventType(EventTypeId);
             }
         }
 
@@ -84,7 +99,7 @@ namespace LogonTimes.DataModel
                 {
                     return null;
                 }
-                return DataAccess.Instance.GetLogonTime(CorrespondingEventId.Value);
+                return dataAccess.GetLogonTime(CorrespondingEventId.Value);
             }
         }
 
@@ -105,6 +120,13 @@ namespace LogonTimes.DataModel
     #region Logon time allowed
     public partial class LogonTimeAllowed
     {
+        private IDataAccess dataAccess;
+
+        public LogonTimeAllowed()
+        {
+            dataAccess = IocRegistry.GetInstance<IDataAccess>();
+        }
+
         public override string ToString()
         {
             return string.Format("{0} {1} {2} {3}", Person.LogonName, DayOfWeek.DayName, TimePeriod.PeriodStart.ToString("hh:mm"), Permitted);
@@ -114,7 +136,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.GetPerson(PersonId);
+                return dataAccess.GetPerson(PersonId);
             }
         }
 
@@ -122,7 +144,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.GetDayOfWeek(DayNumber);
+                return dataAccess.GetDayOfWeek(DayNumber);
             }
         }
 
@@ -130,7 +152,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.GetTimePeriod(TimePeriodId);
+                return dataAccess.GetTimePeriod(TimePeriodId);
             }
         }
     }
@@ -139,6 +161,13 @@ namespace LogonTimes.DataModel
     #region Person
     public partial class Person
     {
+        private IDataAccess dataAccess;
+
+        public Person()
+        {
+            dataAccess = IocRegistry.GetInstance<IDataAccess>();
+        }
+
         public override string ToString()
         {
             return LogonName;
@@ -148,7 +177,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.HoursPerDays.Where(x => x.PersonId == PersonId).ToList();
+                return dataAccess.HoursPerDays.Where(x => x.PersonId == PersonId).ToList();
             }
         }
 
@@ -156,7 +185,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.LogonTimes.Where(x => x.PersonId == PersonId).ToList();
+                return dataAccess.LogonTimes.Where(x => x.PersonId == PersonId).ToList();
             }
         }
 
@@ -164,7 +193,7 @@ namespace LogonTimes.DataModel
         {
             get
             {
-                return DataAccess.Instance.LogonTimesAllowed.Where(x => x.PersonId == PersonId).ToList();
+                return dataAccess.LogonTimesAllowed.Where(x => x.PersonId == PersonId).ToList();
             }
         }
 
@@ -208,11 +237,18 @@ namespace LogonTimes.DataModel
     #region System settings
     public partial class SystemSettingDetail
     {
+        private IDataAccess dataAccess;
+
+        public SystemSettingDetail()
+        {
+            dataAccess = IocRegistry.GetInstance<IDataAccess>();
+        }
+
         public SystemSettingType SystemSettingType
         {
             get
             {
-                return DataAccess.Instance.SystemSettingTypes.First(x => x.SystemSettingNameId == SystemSettingNameId);
+                return dataAccess.SystemSettingTypes.First(x => x.SystemSettingNameId == SystemSettingNameId);
             }
         }
 
@@ -263,16 +299,30 @@ namespace LogonTimes.DataModel
 
     public static class SystemSettings
     {
+        private static IDataAccess dataAccess;
+
+        private static IDataAccess DataAccess
+        {
+            get
+            {
+                if (dataAccess == null)
+                {
+                    dataAccess = IocRegistry.GetInstance<IDataAccess>();
+                }
+                return dataAccess;
+            }
+        }
+
         public static SystemSettingDetail Detail(this SystemSettingTypesEnum settingType)
         {
             SystemSettingAttribute attr = GetAttr(settingType);
-            return DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+            return DataAccess.GetSystemSettingDetail(attr.SystemSettingType);
         }
 
         public static bool? BoolValue(this SystemSettingTypesEnum settingType)
         {
             SystemSettingAttribute attr = GetAttr(settingType);
-            var systemSetting = DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+            var systemSetting = DataAccess.GetSystemSettingDetail(attr.SystemSettingType);
             if (systemSetting != null)
             {
                 return systemSetting.BoolValue;
@@ -283,7 +333,7 @@ namespace LogonTimes.DataModel
         public static int? IntValue(this SystemSettingTypesEnum settingType)
         {
             SystemSettingAttribute attr = GetAttr(settingType);
-            var systemSetting = DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+            var systemSetting = DataAccess.GetSystemSettingDetail(attr.SystemSettingType);
             if (systemSetting != null)
             {
                 return systemSetting.IntValue;
@@ -294,7 +344,7 @@ namespace LogonTimes.DataModel
         public static string StringValue(this SystemSettingTypesEnum settingType)
         {
             SystemSettingAttribute attr = GetAttr(settingType);
-            var systemSetting = DataAccess.Instance.GetSystemSettingDetail(attr.SystemSettingType);
+            var systemSetting = DataAccess.GetSystemSettingDetail(attr.SystemSettingType);
             if (systemSetting != null)
             {
                 return systemSetting.StringValue;

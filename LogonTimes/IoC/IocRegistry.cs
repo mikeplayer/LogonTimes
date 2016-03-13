@@ -10,18 +10,18 @@ namespace LogonTimes.IoC
     {
         #region Fields
 
-        private static IRegistry registry;
+        private static IStructureMapRegistry registry;
 
         /// <summary>
         /// Singleton instance of the IocRegistry
         /// </summary>
-        public static IRegistry Instance
+        public static IStructureMapRegistry Instance
         {
             get
             {
                 if (registry == null)
                 {
-                    registry = new Registry();
+                    registry = new StructureMapRegistry();
                 }
                 return registry;
             }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace LogonTimes.IoC
 {
-    public interface IRegistry
+    public interface IStructureMapRegistry : IDisposable
     {
         #region Methods
 

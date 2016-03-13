@@ -15,6 +15,7 @@ namespace LogonTimes.UI
 {
     public partial class LogonTimesConfiguration : Form
     {
+        private ILogonTimesConfigurationData dataAccess;
         private IUserManagement userManagement;
         private ITimeManagement timeManagement;
         private bool isLoading = true;
@@ -30,6 +31,7 @@ namespace LogonTimes.UI
         public LogonTimesConfiguration()
         {
             InitializeComponent();
+            dataAccess = IocRegistry.GetInstance<ILogonTimesConfigurationData>();
             timeManagement = IocRegistry.GetInstance<ITimeManagement>();
             userManagement = IocRegistry.GetInstance<IUserManagement>();
             CheckPermissions();
@@ -135,13 +137,13 @@ namespace LogonTimes.UI
             var superFont = new Font(FontFamily.GenericSansSerif, 10, FontStyle.Bold);
             var standardFont = new Font(FontFamily.GenericSansSerif, 10, FontStyle.Regular);
             const int dayColumnCount = 12;
-            int timePeriodCount = DataAccess.Instance.TimePeriods.Count;
+            int timePeriodCount = dataAccess.TimePeriods.Count;
             int halfWay = timePeriodCount / 2;
             int timePeriodsPerHour = timePeriodCount / 24;
             int defaultWidth = gridWhen.Width / (timePeriodCount + dayColumnCount);
             gridWhen.DefaultWidth = defaultWidth;
             gridWhen.ColumnsCount = timePeriodCount + dayColumnCount;
-            gridWhen.RowsCount = DataAccess.Instance.DaysOfWeek.Count + 2;    //no of days + 2 header lines
+            gridWhen.RowsCount = dataAccess.DaysOfWeek.Count + 2;    //no of days + 2 header lines
 
             RectangleBorder border = new RectangleBorder(new BorderLine(SystemColors.Control), new BorderLine(SystemColors.Control));
 
@@ -163,7 +165,7 @@ namespace LogonTimes.UI
             cellView.Border = border;
 
             int rowNumber = 2;
-            foreach (var day in DataAccess.Instance.DaysOfWeek)
+            foreach (var day in dataAccess.DaysOfWeek)
             {
                 gridWhen[rowNumber, 0] = new SourceGrid.Cells.ColumnHeader(day.DayName);
                 gridWhen[rowNumber, 0].ColumnSpan = dayColumnCount;
@@ -190,10 +192,10 @@ namespace LogonTimes.UI
                 gridWhen[1, dayColumnCount + (i * timePeriodsPerHour)].View = standardHeaderView;
             }
             int col = dayColumnCount;
-            foreach (var timePeriod in DataAccess.Instance.TimePeriods)
+            foreach (var timePeriod in dataAccess.TimePeriods)
             {
                 int row = 2;
-                foreach (var day in DataAccess.Instance.DaysOfWeek)
+                foreach (var day in dataAccess.DaysOfWeek)
                 {
                     LogonTimeAllowed loginTimeAllowed = new LogonTimeAllowed();
                     loginTimeAllowed.Permitted = true;
@@ -339,7 +341,7 @@ namespace LogonTimes.UI
             {
                 dgvHoursAllowed.Rows.Add(new object[] { record.HoursPerDayId, record.DayOfWeek.DayName, record.HoursAllowed });
             }
-            var logonTimesAllowed = timeManagement.LogonTimesAllowed(CurrentPerson);
+            var logonTimesAllowed = userManagement.LogonTimesAllowed(CurrentPerson);
             foreach (var logonTimeAllowed in logonTimesAllowed)
             {
                 SetBackColour(whenAllowedValuesList.SetLogonTimeAllowed(logonTimeAllowed));
@@ -483,8 +485,8 @@ namespace LogonTimes.UI
         {
             var configUpdated = SystemSettingTypesEnum.ConfigurationChanged.Detail();
             configUpdated.SystemSetting = true.ToString();
-            DataAccess.Instance.UpdateSystemSettingDetail(configUpdated);
-            if (DataAccess.Instance.StillWorking)
+            dataAccess.UpdateSystemSettingDetail(configUpdated);
+            if (dataAccess.StillWorking)
             {
                 var workingItems = new WorkingItems();
                 workingItems.ShowDialog(this);

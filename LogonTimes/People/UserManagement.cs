@@ -4,6 +4,7 @@ using System.Management;
 using LogonTimes.DataModel;
 using System;
 using System.Threading;
+using LogonTimes.IoC;
 
 namespace LogonTimes.People
 {
@@ -12,10 +13,12 @@ namespace LogonTimes.People
         public event EventHandler<PersonEventArgs> PersonLoadedFromUserAccount;
         public event EventHandler PersonLoadingComplete;
         private List<Person> peopleBeingModified = new List<Person>();
+        private IUserManagementData dataAccess;
 
         public UserManagement()
         {
-            DataAccess.Instance.PersonModificationFinished += DataAccessPersonModificationFinished;
+            dataAccess = IocRegistry.GetInstance<IUserManagementData>();
+            dataAccess.PersonModificationFinished += DataAccessPersonModificationFinished;
         }
 
         private void DataAccessPersonModificationFinished(object sender, PersonEventArgs e)
@@ -25,7 +28,7 @@ namespace LogonTimes.People
 
         public List<Person> LoadPeople()
         {
-            var people = DataAccess.Instance.People;
+            var people = dataAccess.People;
             Thread loadPersonThread = new Thread(AddNewPeople);
             loadPersonThread.IsBackground = true;
             loadPersonThread.Start();
@@ -34,7 +37,7 @@ namespace LogonTimes.People
 
         private void AddNewPeople()
         {
-            var people = DataAccess.Instance.People;
+            var people = dataAccess.People;
             SelectQuery query = new SelectQuery("Win32_UserAccount");
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
             foreach (ManagementObject userAccount in searcher.Get())
@@ -45,7 +48,7 @@ namespace LogonTimes.People
                 {
                     Person person = new Person();
                     person.LogonName = personName;
-                    DataAccess.Instance.AddPerson(person);
+                    dataAccess.AddPerson(person);
                     EventHandler<PersonEventArgs> handler = PersonLoadedFromUserAccount;
                     if (handler != null)
                     {
@@ -62,14 +65,14 @@ namespace LogonTimes.People
 
         public void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
         {
-            DataAccess.Instance.UpdateLogonTimeAllowed(logonTimeAllowed);
+            dataAccess.UpdateLogonTimeAllowed(logonTimeAllowed);
         }
 
         public Person GetPersonDetail(string personName)
         {
-            if (DataAccess.Instance.People.Any(x => x.LogonName.Equals(personName)))
+            if (dataAccess.People.Any(x => x.LogonName.Equals(personName)))
             {
-                var result = DataAccess.Instance.People.First(x => x.LogonName.Equals(personName));
+                var result = dataAccess.People.First(x => x.LogonName.Equals(personName));
                 while (peopleBeingModified.Any(x => x.PersonId == result.PersonId))
                 {
                     Thread.Sleep(100);
@@ -98,21 +101,21 @@ namespace LogonTimes.People
         {
             var person = GetPersonDetail(personName);
             peopleBeingModified.Add(person);
-            DataAccess.Instance.MakePersonRestricted(person);
+            dataAccess.MakePersonRestricted(person);
         }
 
         public void SetPersonToUnrestricted(string personName)
         {
             var person = GetPersonDetail(personName);
             peopleBeingModified.Add(person);
-            DataAccess.Instance.MakePersonUnrestricted(person);
+            dataAccess.MakePersonUnrestricted(person);
         }
 
         public void UpdateHoursPerDay(int hoursPerDayId, float? newValue)
         {
-            var hoursAllowed = DataAccess.Instance.GetHoursPerDay(hoursPerDayId);
+            var hoursAllowed = dataAccess.GetHoursPerDay(hoursPerDayId);
             hoursAllowed.HoursAllowed = newValue;
-            DataAccess.Instance.UpdateHourPerDay(hoursAllowed);
+            dataAccess.UpdateHourPerDay(hoursAllowed);
         }
 
         public List<HoursPerDay> HoursPerDayForPerson(string personName)
@@ -123,6 +126,15 @@ namespace LogonTimes.People
                 return null;
             }
             return person.HoursPerDay;
+        }
+
+        public List<LogonTimeAllowed> LogonTimesAllowed(string userName)
+        {
+            Person person = GetPersonDetail(userName);
+            return person.LogonTimesAllowed
+                .OrderBy(x => x.DayNumber)
+                .ThenBy(x => x.TimePeriod.PeriodStart)
+                .ToList();
         }
     }
 }
