@@ -10,6 +10,7 @@ using LogonTimes.TimeControl;
 using LogonTimes.People;
 using System.Security.Principal;
 using LogonTimes.IoC;
+using LogonTimes.DateHandling;
 
 namespace LogonTimes.UI
 {
@@ -18,6 +19,7 @@ namespace LogonTimes.UI
         private ILogonTimesConfigurationData dataAccess;
         private IUserManagement userManagement;
         private ITimeManagement timeManagement;
+        private IDates dates;
         private bool isLoading = true;
         private int currentFocusItem;
         private SourceGrid.Cells.Views.Cell permittedCellView;
@@ -34,6 +36,7 @@ namespace LogonTimes.UI
             dataAccess = IocRegistry.GetInstance<ILogonTimesConfigurationData>();
             timeManagement = IocRegistry.GetInstance<ITimeManagement>();
             userManagement = IocRegistry.GetInstance<IUserManagement>();
+            dates = IocRegistry.GetInstance<IDates>();
             CheckPermissions();
             LoadUsers();
             SetupLogonTimesGrid();
@@ -462,7 +465,7 @@ namespace LogonTimes.UI
                     if (currentHoverTarget == null || currentHoverTarget != value)
                     {
                         currentHoverTarget = value;
-                        DateTime dateForFormat = DateTime.Today;
+                        DateTime dateForFormat = dates.Today;
                         dateForFormat = dateForFormat + value.WhichTimePeriod.PeriodStart.TimeOfDay;
                         StringBuilder toolTip = new StringBuilder();
                         toolTip.Append(dateForFormat.ToString("h:mm tt "));

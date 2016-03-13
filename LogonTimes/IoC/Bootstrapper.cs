@@ -5,6 +5,7 @@ using LogonTimes.People;
 using LogonTimes.DataModel;
 using LogonTimes.TimeControl;
 using LogonTimes.Logging;
+using LogonTimes.DateHandling;
 
 namespace LogonTimes.IoC
 {
@@ -92,6 +93,7 @@ namespace LogonTimes.IoC
                     scanner.AssemblyContainingType<ITimeManagement>();
                     scanner.AssemblyContainingType<IEventManagement>();
                     scanner.AssemblyContainingType<IDataAccess>();
+                    scanner.AssemblyContainingType<IDates>();
                     scanner.WithDefaultConventions();
                 }));
                 iocContainer.Configure(_ =>

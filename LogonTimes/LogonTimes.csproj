@@ -93,6 +93,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataModel\IDataAccess.cs" />
+    <Compile Include="DateHandling\DateImplementation.cs" />
+    <Compile Include="DateHandling\IDates.cs" />
     <Compile Include="IoC\Bootstrapper.cs" />
     <Compile Include="DataModel\DataAccess.cs" />
     <Compile Include="DataModel\LogonTimes.generated.cs">

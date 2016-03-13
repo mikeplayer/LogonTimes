@@ -1,4 +1,5 @@
 ﻿using LogonTimes.DataModel;
+using LogonTimes.DateHandling;
 using LogonTimes.IoC;
 using LogonTimes.Logging;
 using System;
@@ -13,11 +14,13 @@ namespace LogonTimes.TimeControl
         #region constructors
         private ILogger logger;
         private ITimeManagementData dataAccess;
+        private IDates dates;
 
         public EventManagement()
         {
             logger = IocRegistry.GetInstance<ILogger>();
             dataAccess = IocRegistry.GetInstance<ITimeManagementData>();
+            dates = IocRegistry.GetInstance<IDates>();
             LoadLogonTimes();
         }
         #endregion constructors
@@ -46,7 +49,7 @@ namespace LogonTimes.TimeControl
         #region public methods
         public void LoadLogonTimes()
         {
-            LogonTimesToday = dataAccess.LogonTimes.Where(x => x.EventTime >= DateTime.Today).ToList();
+            LogonTimesToday = dataAccess.LogonTimes.Where(x => x.EventTime >= dates.Today).ToList();
         }
 
         public void CreateCurrentEvent(int eventTypeId)
@@ -67,7 +70,7 @@ namespace LogonTimes.TimeControl
                 logger.AddLineToMessage(message, "User is restricted");
                 CurrentEvent = new LogonTime
                 {
-                    EventTime = DateTime.Now,
+                    EventTime = dates.Now,
                     EventTypeId = eventTypeId,
                     PersonId = CurrentPerson.PersonId
                 };
