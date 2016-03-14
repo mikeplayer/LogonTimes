@@ -4,6 +4,7 @@ using LinqToDB;
 using System;
 using System.Reflection;
 using LogonTimes.IoC;
+using LogonTimes.DateHandling;
 
 namespace LogonTimes.DataModel
 {
@@ -162,10 +163,12 @@ namespace LogonTimes.DataModel
     public partial class Person
     {
         private IDataAccess dataAccess;
+        private IDates dates;
 
         public Person()
         {
             dataAccess = IocRegistry.GetInstance<IDataAccess>();
+            dates = IocRegistry.GetInstance<IDates>();
         }
 
         public override string ToString()
@@ -212,7 +215,7 @@ namespace LogonTimes.DataModel
             {
                 if (HoursPerDay.Any(x => x.DayNumber == (int)DateTime.Today.DayOfWeek))
                 {
-                    var hourPerDay = HoursPerDay.First(x => x.DayNumber == (int)DateTime.Today.DayOfWeek);
+                    var hourPerDay = HoursPerDay.First(x => x.DayNumber == (int)dates.Today.DayOfWeek);
                     if (hourPerDay.HoursAllowed.HasValue)
                     {
                         return hourPerDay.HoursAllowed.Value;

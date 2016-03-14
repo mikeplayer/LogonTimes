@@ -8,6 +8,7 @@ using System.Threading;
 using LogonTimes.IoC;
 using LogonTimes.TimeControl;
 using LogonTimes.People;
+using LogonTimes.DateHandling;
 
 namespace LogonTimes.DataModel
 {
@@ -18,6 +19,7 @@ namespace LogonTimes.DataModel
         , ITimeManagementData
         , IUserManagementData
     {
+        private IDates dates;
         private List<DayOfWeek> daysOfWeek;
         private List<EventType> eventTypes;
         private List<HoursPerDay> hoursPerDays;
@@ -39,7 +41,8 @@ namespace LogonTimes.DataModel
         public DataAccess()
         {
             logger = IocRegistry.GetInstance<ILogger>();
-            DateStarted = DateTime.Now;
+            dates = IocRegistry.GetInstance<IDates>();
+            DateStarted = dates.Now;
         }
 
         public void CheckForUpdates()

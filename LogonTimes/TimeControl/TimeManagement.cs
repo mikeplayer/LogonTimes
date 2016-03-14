@@ -8,6 +8,7 @@ using LogonTimes.DataModel;
 using LogonTimes.Logging;
 using LogonTimes.People;
 using LogonTimes.IoC;
+using LogonTimes.DateHandling;
 
 namespace LogonTimes.TimeControl
 {
@@ -16,7 +17,8 @@ namespace LogonTimes.TimeControl
         private IUserManagement userManagement;
         private IEventManagement eventManagement;
         private ITerminalServicesSession currentSession = null;
-        private DateTime currentDateTime = DateTime.Now;
+        private IDates dates;
+        private DateTime currentDateTime;
         private int pendingEventId;
         private int newDayLogonEventId;
         private bool logoffMessageGiven = false;
@@ -32,6 +34,8 @@ namespace LogonTimes.TimeControl
             userManagement = IocRegistry.GetInstance<IUserManagement>();
             eventManagement = IocRegistry.GetInstance<IEventManagement>();
             logger = IocRegistry.GetInstance<ILogger>();
+            dates = IocRegistry.GetInstance<IDates>();
+            currentDateTime = dates.Now;
             pendingEventId = dataAccess.EventTypes.First(x => x.EventTypeName.Equals("Pending")).EventTypeId;
             newDayLogonEventId = dataAccess.EventTypes.First(x => x.EventTypeName.Equals("NewDayLogon")).EventTypeId;
         }
@@ -128,12 +132,11 @@ namespace LogonTimes.TimeControl
             {
                 logger.AddLineToMessage(message, string.Format("current session != null and {0} is restricted", currentSession.UserName));
                 int minutesRemaining = (int)((eventManagement.CurrentPerson.MaximumHoursToday - HoursLoggedOnToday.TotalHours) * 60);
-                DateTime today = DateTime.Today;
-                DateTime currentDateTime = DateTime.Now;
+                DateTime today = dates.Today;
+                DateTime currentDateTime = dates.Now;
                 DateTime fiveMinuteWarning = currentDateTime.AddMinutes(5);
                 DateTime tenMinuteWarning = currentDateTime.AddMinutes(10);
                 if (!logoffMessageGiven && (!GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0))
-                //if (!GetLogonTimeAllowed(currentDateTime).Permitted || minutesRemaining <= 0)
                 {
                     LogSessionOff();
                     logoffMessageGiven = true;
@@ -336,8 +339,8 @@ namespace LogonTimes.TimeControl
             var message = new StringBuilder();
             message.Append("Update logins");
             bool refreshLogonTimes = false;
-            var newDateTime = DateTime.Now;
-            eventManagement.CurrentEvent.EventTime = DateTime.Now;
+            var newDateTime = dates.Now;
+            eventManagement.CurrentEvent.EventTime = dates.Now;
             if (newDateTime.Day != currentDateTime.Day)
             {
                 message.Append("New day");
