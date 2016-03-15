@@ -152,6 +152,23 @@ namespace LogonTimesTesting
 
             CreateRegistryIfNotExistsOrReturnExisting();
 
+            AddDependency(dependenciesAction);
+            //var dependencySpecifier = new DependencySpecifier();
+            //dependenciesAction(dependencySpecifier);
+
+            //foreach (var dependency in dependencySpecifier.Dependencies)
+            //{
+            //    Registry.Container.Inject(
+            //        dependency.Key,
+            //        dependency.Value);
+            //}
+
+            PostInitialise();
+            AddLogMessage("registry recreated");
+        }
+
+        protected void AddDependency(Action<DependencySpecifier> dependenciesAction)
+        {
             var dependencySpecifier = new DependencySpecifier();
             dependenciesAction(dependencySpecifier);
 
@@ -161,9 +178,6 @@ namespace LogonTimesTesting
                     dependency.Key,
                     dependency.Value);
             }
-
-            PostInitialise();
-            AddLogMessage("registry recreated");
         }
 
         /// <summary>

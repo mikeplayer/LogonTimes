@@ -46,15 +46,9 @@ namespace LogonTimes.TimeControl
         }
         #endregion private methods
 
-        #region public methods
-        public void LoadLogonTimes()
+        #region Logging
+        private void LogStartCurrentEvent(StringBuilder message, int eventTypeId)
         {
-            LogonTimesToday = dataAccess.LogonTimes.Where(x => x.EventTime >= dates.Today).ToList();
-        }
-
-        public void CreateCurrentEvent(int eventTypeId)
-        {
-            var message = new StringBuilder();
             logger.AddLineToMessage(message, "Create current event");
             if (CurrentPerson != null)
             {
@@ -65,6 +59,37 @@ namespace LogonTimes.TimeControl
                 var eventType = dataAccess.GetEventType(eventTypeId);
                 logger.AddLineToMessage(message, eventType.EventTypeName);
             }
+        }
+
+        private void LogUpdatingCurrentEvent(StringBuilder message)
+        {
+            logger.AddLineToMessage(message, "Updating current event with previous event ID");
+            message.Append("Current event ID: ");
+            logger.AddLineToMessage(message, CurrentEvent.LogonTimeId.ToString());
+            message.Append("Corresponding event ID: ");
+            logger.AddLineToMessage(message, CurrentEvent.CorrespondingEventId.ToString());
+        }
+
+        private void LogUpdatingPreviousEvent(StringBuilder message, LogonTime previousLogon)
+        {
+            logger.AddLineToMessage(message, "Updating previous event with current event ID");
+            message.Append("Previous event ID: ");
+            logger.AddLineToMessage(message, previousLogon.LogonTimeId.ToString());
+            message.Append("Corresponding event ID: ");
+            logger.AddLineToMessage(message, previousLogon.CorrespondingEventId.ToString());
+        }
+        #endregion Logging
+
+        #region public methods
+        public void LoadLogonTimes()
+        {
+            LogonTimesToday = dataAccess.LogonTimes.Where(x => x.EventTime >= dates.Today).ToList();
+        }
+
+        public void CreateCurrentEvent(int eventTypeId)
+        {
+            var message = new StringBuilder();
+            LogStartCurrentEvent(message, eventTypeId);
             if (CurrentPerson != null && CurrentPerson.IsRestricted)
             {
                 logger.AddLineToMessage(message, "User is restricted");
@@ -82,19 +107,11 @@ namespace LogonTimes.TimeControl
                     if (previousLogon != null)
                     {
                         CurrentEvent.CorrespondingEventId = previousLogon.LogonTimeId;
-                        logger.AddLineToMessage(message, "Updating current event with previous event ID");
-                        message.Append("Current event ID: ");
-                        logger.AddLineToMessage(message, CurrentEvent.LogonTimeId.ToString());
-                        message.Append("Corresponding event ID: ");
-                        logger.AddLineToMessage(message, CurrentEvent.CorrespondingEventId.ToString());
+                        LogUpdatingCurrentEvent(message);
                         dataAccess.AddOrUpdateLogonTime(CurrentEvent);
 
                         previousLogon.CorrespondingEventId = CurrentEvent.LogonTimeId;
-                        logger.AddLineToMessage(message, "Updating previous event with current event ID");
-                        message.Append("Previous event ID: ");
-                        logger.AddLineToMessage(message, previousLogon.LogonTimeId.ToString());
-                        message.Append("Corresponding event ID: ");
-                        logger.AddLineToMessage(message, previousLogon.CorrespondingEventId.ToString());
+                        LogUpdatingPreviousEvent(message, previousLogon);
                         dataAccess.AddOrUpdateLogonTime(previousLogon);
                     }
                 }
