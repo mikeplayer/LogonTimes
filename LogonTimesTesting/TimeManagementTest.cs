@@ -42,6 +42,17 @@ namespace LogonTimesTesting
         #region mock data
         //Would normally use some sort of data mocking for this, but for this we need specific matching data
 
+        #region dates
+        delegate DateTime MockedGetDate();
+        private void SetupDates()
+        {
+            MockedGetDate getToday = () => { return todayValue; };
+            mockDates.Stub(x => x.Today).Do(getToday);
+            MockedGetDate getNow = () => { return nowValue; };
+            mockDates.Stub(x => x.Now).Do(getNow);
+        }
+        #endregion dates
+
         #region days of week
         private void SetupDaysOfWeek()
         {
@@ -199,7 +210,14 @@ namespace LogonTimesTesting
                 if (logonTime.LogonTimeId == 0)
                 {
                     var lastItem = logonTimes.OrderByDescending(x => x.LogonTimeId).FirstOrDefault();
-                    logonTime.LogonTimeId = lastItem.LogonTimeId + 1;
+                    if (lastItem != null)
+                    {
+                        logonTime.LogonTimeId = lastItem.LogonTimeId + 1;
+                    }
+                    else
+                    {
+                        logonTime.LogonTimeId = 1;
+                    }
                     logonTimes.Add(logonTime);
                 }
                 else
@@ -255,9 +273,6 @@ namespace LogonTimesTesting
 
             mockLogger.Stub(x => x.ShouldLog(Arg<DebugLevels>.Is.Anything)).Return(false);
 
-            mockDates.Stub(x => x.Today).Return(todayValue);
-            mockDates.Stub(x => x.Now).Return(nowValue);
-
             Initialise(x =>
             {
                 x.AddDependency(mockDataAccess);
@@ -267,6 +282,7 @@ namespace LogonTimesTesting
                 x.AddDependency(mockDates);
             });
 
+            SetupDates();
             SetupDaysOfWeek();
             SetupEventTypes();
             SetupTimePeriods();
@@ -290,6 +306,40 @@ namespace LogonTimesTesting
             });
         }
         #endregion Setup
+
+        private void DoAssertions(bool msgboxCalled, bool logOffCalled)
+        {
+            if (msgboxCalled)
+            {
+                mockTerminalServicesSession.AssertWasCalled(x => x.MessageBox(Arg<string>.Is.Anything
+                    , Arg<string>.Is.Anything
+                    , Arg<RemoteMessageBoxButtons>.Is.Anything
+                    , Arg<RemoteMessageBoxIcon>.Is.Anything
+                    , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
+                    , Arg<RemoteMessageBoxOptions>.Is.Anything
+                    , Arg<TimeSpan>.Is.Anything
+                    , Arg<bool>.Is.Anything));
+            }
+            else
+            {
+                mockTerminalServicesSession.AssertWasNotCalled(x => x.MessageBox(Arg<string>.Is.Anything
+                    , Arg<string>.Is.Anything
+                    , Arg<RemoteMessageBoxButtons>.Is.Anything
+                    , Arg<RemoteMessageBoxIcon>.Is.Anything
+                    , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
+                    , Arg<RemoteMessageBoxOptions>.Is.Anything
+                    , Arg<TimeSpan>.Is.Anything
+                    , Arg<bool>.Is.Anything));
+            }
+            if (logOffCalled)
+            {
+                mockTerminalServicesSession.AssertWasCalled(x => x.Disconnect(Arg<bool>.Is.Anything));
+            }
+            else
+            {
+                mockTerminalServicesSession.AssertWasNotCalled(x => x.Disconnect(Arg<bool>.Is.Anything));
+            }
+        }
 
         [TestMethod]
         public void NewSessionEvent_EventWithTrigger_CurrentPersonCalled()
@@ -319,15 +369,7 @@ namespace LogonTimesTesting
             AddEventManager(true);
             var timeManagement = new TimeManagement();
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
-            mockTerminalServicesSession.AssertWasCalled(x => x.MessageBox(Arg<string>.Is.Anything
-                , Arg<string>.Is.Anything
-                , Arg<RemoteMessageBoxButtons>.Is.Anything
-                , Arg<RemoteMessageBoxIcon>.Is.Anything
-                , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
-                , Arg<RemoteMessageBoxOptions>.Is.Anything
-                , Arg<TimeSpan>.Is.Anything
-                , Arg<bool>.Is.Anything));
-            mockTerminalServicesSession.AssertWasNotCalled(x => x.Disconnect(Arg<bool>.Is.Anything));
+            DoAssertions(true, false);
         }
 
         [TestMethod]
@@ -340,15 +382,7 @@ namespace LogonTimesTesting
             AddEventManager(true);
             var timeManagement = new TimeManagement();
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
-            mockTerminalServicesSession.AssertWasCalled(x => x.MessageBox(Arg<string>.Is.Anything
-                , Arg<string>.Is.Anything
-                , Arg<RemoteMessageBoxButtons>.Is.Anything
-                , Arg<RemoteMessageBoxIcon>.Is.Anything
-                , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
-                , Arg<RemoteMessageBoxOptions>.Is.Anything
-                , Arg<TimeSpan>.Is.Anything
-                , Arg<bool>.Is.Anything));
-            mockTerminalServicesSession.AssertWasCalled(x => x.Disconnect(Arg<bool>.Is.Anything));
+            DoAssertions(true, true);
         }
 
         [TestMethod]
@@ -361,19 +395,11 @@ namespace LogonTimesTesting
             AddEventManager(true);
             var timeManagement = new TimeManagement();
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
-            mockTerminalServicesSession.AssertWasCalled(x => x.MessageBox(Arg<string>.Is.Anything
-                , Arg<string>.Is.Anything
-                , Arg<RemoteMessageBoxButtons>.Is.Anything
-                , Arg<RemoteMessageBoxIcon>.Is.Anything
-                , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
-                , Arg<RemoteMessageBoxOptions>.Is.Anything
-                , Arg<TimeSpan>.Is.Anything
-                , Arg<bool>.Is.Anything));
-            mockTerminalServicesSession.AssertWasCalled(x => x.Disconnect(Arg<bool>.Is.Anything));
+            DoAssertions(true, true);
         }
 
         [TestMethod]
-        public void NewSessionEvent_HoursExceededThenNewDay_NoWarningNotLoggedOff()
+        public void NewSessionEvent_HoursExceededThenNewDayLogon_NoWarningNotLoggedOff()
         {
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
@@ -384,15 +410,82 @@ namespace LogonTimesTesting
             todayValue = DateTime.Today.AddDays(1);
             nowValue = DateTime.Now.AddDays(1);
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
-            mockTerminalServicesSession.AssertWasNotCalled(x => x.MessageBox(Arg<string>.Is.Anything
+            DoAssertions(false, false);
+        }
+
+        [TestMethod]
+        public void UpdateLogins_TimeNotExpired_NoWarningNotLoggedOff()
+        {
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, true);
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            nowValue = DateTime.Now.AddMinutes(-20);
+            timeManagement.UpdateLogins();
+            DoAssertions(false, false);
+        }
+
+        [TestMethod]
+        public void UpdateLogins_TimeExpiresIn5Minutes_WarningGivenNotLoggedOff()
+        {
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, true);
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            nowValue = DateTime.Now.AddMinutes(-5);
+            timeManagement.UpdateLogins();
+            DoAssertions(true, false);
+        }
+
+        [TestMethod]
+        public void UpdateLogins_TimeExpired_WarningGivenLoggedOff()
+        {
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, true);
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            nowValue = DateTime.Now;
+            timeManagement.UpdateLogins();
+            DoAssertions(true, true);
+        }
+
+        [TestMethod]
+        public void UpdateLogins_TimeWithin10MinutesThenTimeWithin8Minutes_WarningNotGiven()
+        {
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, true);
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            nowValue = DateTime.Now.AddMinutes(-10);
+            timeManagement.UpdateLogins();
+            DoAssertions(true, false);
+            mockTerminalServicesSession.Expect(x => x.MessageBox(Arg<string>.Is.Anything
                 , Arg<string>.Is.Anything
                 , Arg<RemoteMessageBoxButtons>.Is.Anything
                 , Arg<RemoteMessageBoxIcon>.Is.Anything
                 , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
                 , Arg<RemoteMessageBoxOptions>.Is.Anything
                 , Arg<TimeSpan>.Is.Anything
-                , Arg<bool>.Is.Anything));
-            mockTerminalServicesSession.AssertWasNotCalled(x => x.Disconnect(Arg<bool>.Is.Anything));
+                , Arg<bool>.Is.Anything)).Repeat.Never();
+            nowValue = DateTime.Now.AddMinutes(-8);
+            timeManagement.UpdateLogins();
+            mockTerminalServicesSession.VerifyAllExpectations();
         }
     }
 }
