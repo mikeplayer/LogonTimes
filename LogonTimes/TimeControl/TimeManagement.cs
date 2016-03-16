@@ -198,14 +198,7 @@ namespace LogonTimes.TimeControl
             {
                 eventManagement.CreateCurrentEvent(eventType.EventTypeId);
             }
-            else
-            {
-                eventManagement.CurrentEvent.EventTypeId = eventType.EventTypeId;
-            }
-            if (eventManagement.CurrentEvent != null)
-            {
-                dataAccess.AddOrUpdateLogonTime(eventManagement.CurrentEvent);
-            }
+            eventManagement.UpdateCurrentEvent(eventType.EventTypeId);
             eventManagement.CurrentPerson = null;
             eventManagement.CurrentEvent = null;
             return;
@@ -227,7 +220,10 @@ namespace LogonTimes.TimeControl
             eventManagement.CurrentPerson = userManagement.GetPersonDetail(userName);
             LogSetCurrentUser(message);
             eventManagement.CreateCurrentEvent(eventType.EventTypeId);
-            eventManagement.CreateCurrentEvent(pendingEventId);
+            if (eventType.IsLoggedOn)
+            {
+                eventManagement.CreateCurrentEvent(pendingEventId);
+            }
             logoffMessageGiven = false;
             tenMinuteWarningIssued = false;
             fiveMinuteWarningIssued = false;
@@ -340,7 +336,7 @@ namespace LogonTimes.TimeControl
             message.Append("Update logins");
             bool refreshLogonTimes = false;
             var newDateTime = dates.Now;
-            eventManagement.CurrentEvent.EventTime = dates.Now;
+            eventManagement.UpdateCurrentEvent(null);
             if (newDateTime.Day != currentDateTime.Day)
             {
                 message.Append("New day");
@@ -348,7 +344,6 @@ namespace LogonTimes.TimeControl
                 eventManagement.CreateCurrentEvent(pendingEventId);
                 refreshLogonTimes = true;
             }
-            dataAccess.AddOrUpdateLogonTime(eventManagement.CurrentEvent);
             CheckUserState();
             currentDateTime = newDateTime;
             if (refreshLogonTimes)

@@ -15,6 +15,8 @@ namespace LogonTimes.TimeControl
         private ILogger logger;
         private ITimeManagementData dataAccess;
         private IDates dates;
+        private List<LogonTime> logonTimesToday;
+        private DateTime logonTimesLastLoaded;
 
         public EventManagement()
         {
@@ -28,7 +30,17 @@ namespace LogonTimes.TimeControl
         #region public properties
         public Person CurrentPerson { get; set; }
         public LogonTime CurrentEvent { get; set; }
-        public List<LogonTime> LogonTimesToday { get; set; }
+        public List<LogonTime> LogonTimesToday
+        {
+            get
+            {
+                if (logonTimesLastLoaded != dates.Today)
+                {
+                    LoadLogonTimes();
+                }
+                return logonTimesToday;
+            }
+        }
         #endregion public properties
 
         #region private methods
@@ -83,7 +95,22 @@ namespace LogonTimes.TimeControl
         #region public methods
         public void LoadLogonTimes()
         {
-            LogonTimesToday = dataAccess.LogonTimes.Where(x => x.EventTime >= dates.Today).ToList();
+            logonTimesToday = dataAccess.LogonTimes.Where(x => x.EventTime >= dates.Today).ToList();
+            logonTimesLastLoaded = dates.Today;
+        }
+
+        public void UpdateCurrentEvent(int? newEventId)
+        {
+            if (CurrentEvent == null)
+            {
+                return;
+            }
+            CurrentEvent.EventTime = dates.Now;
+            if (newEventId.HasValue)
+            {
+                CurrentEvent.EventTypeId = newEventId.Value;
+            }
+            dataAccess.AddOrUpdateLogonTime(CurrentEvent);
         }
 
         public void CreateCurrentEvent(int eventTypeId)
@@ -92,7 +119,14 @@ namespace LogonTimes.TimeControl
             LogStartCurrentEvent(message, eventTypeId);
             if (CurrentPerson != null && CurrentPerson.IsRestricted)
             {
+                var newEvent = dataAccess.GetEventType(eventTypeId);
                 logger.AddLineToMessage(message, "User is restricted");
+                if (CurrentEvent != null && !CurrentEvent.EventType.IsLoggedOn && !newEvent.IsLoggedOn)
+                {
+                    CurrentEvent.EventTime = dates.Now;
+                    CurrentEvent.EventTypeId = eventTypeId;
+                    dataAccess.AddOrUpdateLogonTime(CurrentEvent);
+                }
                 CurrentEvent = new LogonTime
                 {
                     EventTime = dates.Now,

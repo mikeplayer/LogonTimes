@@ -7,8 +7,9 @@ namespace LogonTimes.TimeControl
     {
         LogonTime CurrentEvent { get; set; }
         Person CurrentPerson { get; set; }
-        List<LogonTime> LogonTimesToday { get; set; }
+        List<LogonTime> LogonTimesToday { get; }
 
+        void UpdateCurrentEvent(int? newEventId);
         void CreateCurrentEvent(int eventTypeId);
         void LoadLogonTimes();
     }
