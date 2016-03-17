@@ -49,9 +49,9 @@ namespace LogonTimes.TimeControl
                 return null;
             }
             int dayNumber = (int)timeWanted.DayOfWeek;
-            return eventManagement.CurrentPerson.LogonTimesAllowed.First(x => x.DayNumber == dayNumber
+            return eventManagement.CurrentPerson.LogonTimesAllowed.OrderBy(x => x.DayNumber).ThenBy(x => x.TimePeriod.PeriodEnd)
+                .First(x => x.DayNumber == dayNumber
                 && x.PersonId == eventManagement.CurrentPerson.PersonId
-                && x.TimePeriod.PeriodStart.TimeOfDay <= timeWanted.TimeOfDay
                 && x.TimePeriod.PeriodEnd.TimeOfDay > timeWanted.TimeOfDay);
         }
 
@@ -210,6 +210,7 @@ namespace LogonTimes.TimeControl
             if (!eventType.IsLoggedOn)
             {
                 SetCurrentPersonLoggedOff(message, userName, eventType);
+                return;
             }
             AddToLogMessage(message, "Log on event", DebugLevels.Debug);
             if (string.IsNullOrEmpty(userName))

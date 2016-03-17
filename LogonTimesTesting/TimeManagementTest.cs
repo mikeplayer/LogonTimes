@@ -15,6 +15,7 @@ namespace LogonTimesTesting
     [TestClass]
     public class TimeManagementTest : BaseTest
     {
+        #region local variables
         private IDataAccess mockDataAccess;
         private ITerminalServicesSession mockTerminalServicesSession;
         private ITimeManagementData mockTimeManagementData;
@@ -38,6 +39,9 @@ namespace LogonTimesTesting
         private List<LogonTime> logonTimes;
         private DateTime todayValue = DateTime.Today;
         private DateTime nowValue = DateTime.Now;
+        private int noOfMessages = 0;
+        private bool loggedOff = false;
+        #endregion local variables
 
         #region mock data
         //Would normally use some sort of data mocking for this, but for this we need specific matching data
@@ -307,6 +311,17 @@ namespace LogonTimesTesting
         }
         #endregion Setup
 
+        #region Terminal services
+        delegate RemoteMessageBoxResult MockedMessageBox(string message
+            , string header
+            , RemoteMessageBoxButtons button
+            , RemoteMessageBoxIcon icon
+            , RemoteMessageBoxDefaultButton defaultButton
+            , RemoteMessageBoxOptions options
+            , TimeSpan timeout
+            , bool synchronous);
+        delegate void MockedDisconnect(bool synchronous);
+
         private void DoAssertions(bool msgboxCalled, bool logOffCalled)
         {
             if (msgboxCalled)
@@ -341,66 +356,110 @@ namespace LogonTimesTesting
             }
         }
 
-        [TestMethod]
-        public void NewSessionEvent_EventWithTrigger_CurrentPersonCalled()
+        private void SetupToCountTerminalServicesEvents(TimeManagement timeManagement)
         {
+            MockedMessageBox messageBox = (mesage, header, button, icon, defaultButton, options, timeout, sync) =>
+            {
+                noOfMessages++;
+                return RemoteMessageBoxResult.Ok;
+            };
+
+            mockTerminalServicesSession.Stub(x => x.MessageBox(Arg<string>.Is.Anything
+                , Arg<string>.Is.Anything
+                , Arg<RemoteMessageBoxButtons>.Is.Anything
+                , Arg<RemoteMessageBoxIcon>.Is.Anything
+                , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
+                , Arg<RemoteMessageBoxOptions>.Is.Anything
+                , Arg<TimeSpan>.Is.Anything
+                , Arg<bool>.Is.Anything))
+                .Do(messageBox);
+            MockedDisconnect disconnect = (synchronous) =>
+            {
+                timeManagement.NewSessionEvent(mockTerminalServicesSession, logoffEventName);
+                loggedOff = true;
+
+            };
+            mockTerminalServicesSession.Stub(x => x.Disconnect(Arg<bool>.Is.Anything)).Do(disconnect);
+        }
+        #endregion Terminal services
+
+        #region New session event, testing hours per day
+        [TestMethod]
+        public void NewSessionEventHoursPerDay_EventWithTrigger_CurrentPersonCalled()
+        {
+            //Arrange
             AddEventManager(false);
             var timeManagement = new TimeManagement();
+            //Act
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
             eventManagement.AssertWasCalled(x => x.CurrentPerson = people.First());
         }
 
         [TestMethod]
-        public void NewSessionEvent_EventNoTrigger_NoCurrentPerson()
+        public void NewSessionEventHoursPerDay_EventNoTrigger_NoCurrentPerson()
         {
+            //Arrange
             AddEventManager(false);
             var timeManagement = new TimeManagement();
+            //Act
             timeManagement.NewSessionEvent(mockTerminalServicesSession, noTriggerLogonEventName);
+            //Assert
             eventManagement.AssertWasNotCalled(x => x.CurrentPerson = people.First());
         }
 
         [TestMethod]
-        public void NewSessionEvent_HoursWillBeExceededIn5Minutes_WarningIssuedNotLoggedOff()
+        public void NewSessionEventHoursPerDay_HoursWillBeExceededIn5Minutes_WarningIssuedNotLoggedOff()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
             MockLogonTimesTimeUsedUp(personId, 5);
             AddEventManager(true);
             var timeManagement = new TimeManagement();
+            //Act
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
             DoAssertions(true, false);
         }
 
         [TestMethod]
-        public void NewSessionEvent_HoursExceededBy5Minutes_WarningIssuedNotLoggedOff()
+        public void NewSessionEventHoursPerDay_HoursExceededBy5Minutes_WarningIssuedNotLoggedOff()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
             MockLogonTimesTimeUsedUp(personId, -5);
             AddEventManager(true);
             var timeManagement = new TimeManagement();
+            //Act
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
             DoAssertions(true, true);
         }
 
         [TestMethod]
-        public void NewSessionEvent_HoursExceededBy0Minutes_WarningIssuedNotLoggedOff()
+        public void NewSessionEventHoursPerDay_HoursExceededBy0Minutes_WarningIssuedNotLoggedOff()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
             MockLogonTimesTimeUsedUp(personId, 0);
             AddEventManager(true);
             var timeManagement = new TimeManagement();
+            //Act
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
             DoAssertions(true, true);
         }
 
         [TestMethod]
-        public void NewSessionEvent_HoursExceededThenNewDayLogon_NoWarningNotLoggedOff()
+        public void NewSessionEventHoursPerDay_HoursExceededThenNewDayLogon_NoWarningNotLoggedOff()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
@@ -409,13 +468,18 @@ namespace LogonTimesTesting
             var timeManagement = new TimeManagement();
             todayValue = DateTime.Today.AddDays(1);
             nowValue = DateTime.Now.AddDays(1);
+            //Act
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
             DoAssertions(false, false);
         }
+        #endregion New session event, testing hours per day
 
+        #region Update logins, testing hours per day
         [TestMethod]
-        public void UpdateLogins_TimeNotExpired_NoWarningNotLoggedOff()
+        public void UpdateLoginsHoursPerDay_TimeNotExpired_NoWarningNotLoggedOff()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
@@ -425,13 +489,16 @@ namespace LogonTimesTesting
             nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
             nowValue = DateTime.Now.AddMinutes(-20);
+            //Act
             timeManagement.UpdateLogins();
+            //Assert
             DoAssertions(false, false);
         }
 
         [TestMethod]
-        public void UpdateLogins_TimeExpiresIn5Minutes_WarningGivenNotLoggedOff()
+        public void UpdateLoginsHoursPerDay_TimeExpiresIn5Minutes_WarningGivenNotLoggedOff()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
@@ -441,13 +508,16 @@ namespace LogonTimesTesting
             nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
             nowValue = DateTime.Now.AddMinutes(-5);
+            //Act
             timeManagement.UpdateLogins();
+            //Assert
             DoAssertions(true, false);
         }
 
         [TestMethod]
-        public void UpdateLogins_TimeExpired_WarningGivenLoggedOff()
+        public void UpdateLoginsHoursPerDay_TimeExpired_WarningGivenLoggedOff()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
@@ -457,13 +527,16 @@ namespace LogonTimesTesting
             nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
             timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
             nowValue = DateTime.Now;
+            //Act
             timeManagement.UpdateLogins();
+            //Assert
             DoAssertions(true, true);
         }
 
         [TestMethod]
-        public void UpdateLogins_TimeWithin10MinutesThenTimeWithin8Minutes_WarningNotGiven()
+        public void UpdateLoginsHoursPerDay_TimeWithin10MinutesThenTimeWithin8Minutes_WarningNotGiven()
         {
+            //Arrange
             int personId = people.First().PersonId;
             MockHoursPerDay(personId);
             MockLogonTimesAllowed(personId, true);
@@ -483,9 +556,285 @@ namespace LogonTimesTesting
                 , Arg<RemoteMessageBoxOptions>.Is.Anything
                 , Arg<TimeSpan>.Is.Anything
                 , Arg<bool>.Is.Anything)).Repeat.Never();
+            //Act
             nowValue = DateTime.Now.AddMinutes(-8);
             timeManagement.UpdateLogins();
+            //Assert
             mockTerminalServicesSession.VerifyAllExpectations();
         }
+
+        [TestMethod]
+        public void UpdateLoginsHoursPerDay_Every5MinutesFrom5MinutesBeforeTo5MinutesAfterTimeUp_3Messages1Logoff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            noOfMessages = 0;
+            loggedOff = false;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, true);
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            nowValue = DateTime.Now.AddMinutes(-15);
+            SetupToCountTerminalServicesEvents(timeManagement);
+            //Act
+            timeManagement.UpdateLogins();
+            nowValue = DateTime.Now.AddMinutes(-12);
+            timeManagement.UpdateLogins();
+            nowValue = DateTime.Now.AddMinutes(-10);
+            timeManagement.UpdateLogins();
+            nowValue = DateTime.Now.AddMinutes(-8);
+            timeManagement.UpdateLogins();
+            nowValue = DateTime.Now.AddMinutes(-5);
+            timeManagement.UpdateLogins();
+            nowValue = DateTime.Now.AddMinutes(-3);
+            timeManagement.UpdateLogins();
+            nowValue = DateTime.Now;
+            timeManagement.UpdateLogins();
+            nowValue = DateTime.Now.AddMinutes(2);
+            timeManagement.UpdateLogins();
+            //Assert
+            Assert.IsTrue(loggedOff);
+            Assert.AreEqual(3, noOfMessages);
+        }
+        #endregion Update logins, testing hours per day
+
+        #region New session event, testing logon times allowed
+        [TestMethod]
+        public void NewSessionEventLoginTimeAllowed_LogonNotAllowed_MessageIssuedLoggedOff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = DateTime.Now.AddHours(hoursAllowedPerDay * -1);
+            //Act
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
+            DoAssertions(true, true);
+        }
+
+        [TestMethod]
+        public void NewSessionEventLoginTimeAllowed_LogonAllowedFor10Minutes_MessageIssuedNotLoggedOff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-10);
+            //Act
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
+            DoAssertions(true, false);
+        }
+
+        [TestMethod]
+        public void NewSessionEventLoginTimeAllowed_LogonAllowedFor5Minutes_MessageIssuedNotLoggedOff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-5);
+            //Act
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
+            DoAssertions(true, false);
+        }
+
+        [TestMethod]
+        public void NewSessionEventLoginTimeAllowed_LogonAllowedFor0Minutes_MessageIssuedLoggedOff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay);
+            //Act
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Assert
+            DoAssertions(true, true);
+        }
+        #endregion New session event, testing logon times allowed
+
+        #region Update logins, testing logon times allowed
+        [TestMethod]
+        public void UpdateLoginsLoginTimeAllowed_TimeNotExpired_NoWarningNotLoggedOff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-20);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Act
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-15);
+            timeManagement.UpdateLogins();
+            //Assert
+            DoAssertions(false, false);
+        }
+
+        [TestMethod]
+        public void UpdateLoginsLoginTimeAllowed_TimeExpiresIn5Minutes_WarningGivenNotLoggedOff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-20);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Act
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-5);
+            timeManagement.UpdateLogins();
+            //Assert
+            DoAssertions(true, false);
+        }
+
+        [TestMethod]
+        public void UpdateLoginsLoginTimeAllowed_TimeExpired_WarningGivenLoggedOff()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-20);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Act
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay);
+            timeManagement.UpdateLogins();
+            //Assert
+            DoAssertions(true, true);
+        }
+
+        [TestMethod]
+        public void UpdateLoginsLoginTimeAllowed_TimeWithin10MinutesThenTimeWithin8Minutes_WarningNotGiven()
+        {
+            //Arrange
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-20);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            //Act
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-10);
+            timeManagement.UpdateLogins();
+            DoAssertions(true, false);
+            mockTerminalServicesSession.Expect(x => x.MessageBox(Arg<string>.Is.Anything
+                , Arg<string>.Is.Anything
+                , Arg<RemoteMessageBoxButtons>.Is.Anything
+                , Arg<RemoteMessageBoxIcon>.Is.Anything
+                , Arg<RemoteMessageBoxDefaultButton>.Is.Anything
+                , Arg<RemoteMessageBoxOptions>.Is.Anything
+                , Arg<TimeSpan>.Is.Anything
+                , Arg<bool>.Is.Anything)).Repeat.Never();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-8);
+            timeManagement.UpdateLogins();
+            //Assert
+            mockTerminalServicesSession.VerifyAllExpectations();
+        }
+
+        [TestMethod]
+        public void UpdateLoginsLoginTimeAllowed_Every5MinutesFrom5MinutesBeforeTo5MinutesAfterTimeUp_3Messages1Logoff()
+        {
+            //Arrange
+            noOfMessages = 0;
+            loggedOff = false;
+            int personId = people.First().PersonId;
+            MockHoursPerDay(personId);
+            MockLogonTimesAllowed(personId, false);
+            var pickLogon = logonTimesAllowed.FirstOrDefault(x => x.DayNumber == (int)DateTime.Today.DayOfWeek
+                && x.TimePeriod.PeriodEnd.TimeOfDay >= nowValue.TimeOfDay
+                && x.TimePeriod.PeriodStart.TimeOfDay <= nowValue.TimeOfDay);
+            Assert.IsTrue(pickLogon != null);
+            pickLogon.Permitted = true;
+            AddEventManager(true);
+            var timeManagement = new TimeManagement();
+            todayValue = DateTime.Today;
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-20);
+            timeManagement.NewSessionEvent(mockTerminalServicesSession, logonEventName);
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-10);
+            SetupToCountTerminalServicesEvents(timeManagement);
+            //Act
+            timeManagement.UpdateLogins();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-12);
+            timeManagement.UpdateLogins();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-10);
+            timeManagement.UpdateLogins();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-8);
+            timeManagement.UpdateLogins();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-5);
+            timeManagement.UpdateLogins();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(-3);
+            timeManagement.UpdateLogins();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay);
+            timeManagement.UpdateLogins();
+            nowValue = todayValue.Add(pickLogon.TimePeriod.PeriodEnd.TimeOfDay).AddMinutes(2);
+            timeManagement.UpdateLogins();
+            //Assert
+            Assert.IsTrue(loggedOff);
+            Assert.AreEqual(3, noOfMessages);
+        }
+        #endregion Update logins, testing logon times allowed
     }
 }

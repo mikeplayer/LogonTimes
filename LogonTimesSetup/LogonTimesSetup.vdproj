@@ -21,7 +21,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_19E2DAEE6761B17F8B5DAF993D31D5B9"
+        "MsmKey" = "8:_2B806DA42BF982F5ABD7236C688E1B3E"
+        "OwnerKey" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_31614013E3E55F96F1F6E9E9C58E3DCF"
+        "OwnerKey" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3861A9ED2FD80E161E94E8ED34DFF872"
         "OwnerKey" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -39,8 +51,14 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_41E43BE1F8A9A2DCDC8054ED9FAB0693"
+        "MsmKey" = "8:_58ED5E805FE7533DC8BB37A328241919"
         "OwnerKey" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_58ED5E805FE7533DC8BB37A328241919"
+        "OwnerKey" = "8:_2B806DA42BF982F5ABD7236C688E1B3E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -51,13 +69,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_8E5EAC2E5CC42C887FB440003D83D513"
+        "MsmKey" = "8:_8A395E8C4DDCD71F986E3EDCDEC48167"
         "OwnerKey" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B792921759DD3DFE995616E384BC15BA"
+        "MsmKey" = "8:_8E5EAC2E5CC42C887FB440003D83D513"
         "OwnerKey" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -76,19 +94,31 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_19E2DAEE6761B17F8B5DAF993D31D5B9"
+        "OwnerKey" = "8:_2B806DA42BF982F5ABD7236C688E1B3E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_B792921759DD3DFE995616E384BC15BA"
+        "OwnerKey" = "8:_58ED5E805FE7533DC8BB37A328241919"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_41E43BE1F8A9A2DCDC8054ED9FAB0693"
+        "OwnerKey" = "8:_8A395E8C4DDCD71F986E3EDCDEC48167"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_3861A9ED2FD80E161E94E8ED34DFF872"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_31614013E3E55F96F1F6E9E9C58E3DCF"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -212,7 +242,7 @@
             "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_D4C49398A8914EECA641AAA28351DA86"
             {
             "Name" = "8:Primary output from LogonTimes (Active)"
-            "Condition" = "8:"
+            "Condition" = "8:DATABASEEXISTS"
             "Object" = "8:_C0DFD4EFACA74C4AB98F5A00A87776D4"
             "FileType" = "3:2"
             "InstallAction" = "3:1"
@@ -252,7 +282,7 @@
                 {
                 "Name" = "8:.NET Framework"
                 "Message" = "8:[VSDNETMSG]"
-                "FrameworkVersion" = "8:.NETFramework,Version=v4.5"
+                "FrameworkVersion" = "8:.NETFramework,Version=v4.6.1"
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=395269"
                 }
@@ -260,14 +290,45 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_19E2DAEE6761B17F8B5DAF993D31D5B9"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_2B806DA42BF982F5ABD7236C688E1B3E"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:StructureMap.Net4, Version=4.1.0.361, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_2B806DA42BF982F5ABD7236C688E1B3E"
+                    {
+                    "Name" = "8:StructureMap.Net4.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:StructureMap.Net4.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_31614013E3E55F96F1F6E9E9C58E3DCF"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:SourceGrid, Version=4.30.5908.19256, Culture=neutral, PublicKeyToken=df6f5e538749e85d, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_19E2DAEE6761B17F8B5DAF993D31D5B9"
+                    "_31614013E3E55F96F1F6E9E9C58E3DCF"
                     {
                     "Name" = "8:SourceGrid.dll"
                     "Attributes" = "3:512"
@@ -291,13 +352,44 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3861A9ED2FD80E161E94E8ED34DFF872"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Cassia, Version=2.0.0.60, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_3861A9ED2FD80E161E94E8ED34DFF872"
+                    {
+                    "Name" = "8:Cassia.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Cassia.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_388E8CA7353D49D081E5AC7CC0A6E269"
             {
             "SourcePath" = "8:..\\LogonTimes\\LogonTimes.mdb"
             "TargetName" = "8:LogonTimes.mdb"
             "Tag" = "8:"
             "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
-            "Condition" = "8:"
+            "Condition" = "8:not DATABASEEXISTS"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -331,20 +423,51 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_41E43BE1F8A9A2DCDC8054ED9FAB0693"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_58ED5E805FE7533DC8BB37A328241919"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Cassia, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:StructureMap, Version=4.1.0.361, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_41E43BE1F8A9A2DCDC8054ED9FAB0693"
+                    "_58ED5E805FE7533DC8BB37A328241919"
                     {
-                    "Name" = "8:Cassia.dll"
+                    "Name" = "8:StructureMap.dll"
                     "Attributes" = "3:512"
                     }
                 }
-            "SourcePath" = "8:Cassia.dll"
+            "SourcePath" = "8:StructureMap.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_8A395E8C4DDCD71F986E3EDCDEC48167"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:linq2db, Version=1.0.7.3, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_8A395E8C4DDCD71F986E3EDCDEC48167"
+                    {
+                    "Name" = "8:linq2db.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:linq2db.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
@@ -376,37 +499,6 @@
                     }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_B792921759DD3DFE995616E384BC15BA"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:linq2db, Version=1.0.7.3, Culture=neutral, PublicKeyToken=f19f8aed7feff67e, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_B792921759DD3DFE995616E384BC15BA"
-                    {
-                    "Name" = "8:linq2db.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:linq2db.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
@@ -470,6 +562,21 @@
         }
         "Locator"
         {
+            "{39E1837C-0DB9-45A2-89C8-438377A77565}:_20C92A03277446EE98ECD32ED8EE4EF3"
+            {
+            "Name" = "8:Search for database"
+            "Folder" = "8:[TARGETDIR]"
+            "Depth" = "2:0"
+            "FileName" = "8:LogonTimes.mdb"
+            "MinVesion" = "8:"
+            "MaxVersion" = "8:"
+            "MinSize" = "8:"
+            "MaxSize" = "8:"
+            "MinDate" = "8:"
+            "MaxDate" = "8:"
+            "Languages" = "8:"
+            "Property" = "8:DATABASEEXISTS"
+            }
         }
         "MsiBootstrapper"
         {
@@ -480,15 +587,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Logon Times"
-        "ProductCode" = "8:{EEB2D5CE-E67F-42A3-ACEF-D93B22C1A261}"
-        "PackageCode" = "8:{75E54FB0-AF93-44EA-9BE5-45D556E8EA8D}"
+        "ProductCode" = "8:{346E12EE-1A46-466F-B89B-76B4856DE0F6}"
+        "PackageCode" = "8:{B2692326-2D3B-4125-863C-E04F6A79A714}"
         "UpgradeCode" = "8:{7181D884-7BE5-4759-9363-D200F3A87E23}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.0.1"
         "Manufacturer" = "8:Player Software"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1016,7 +1123,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_0C90682DBBDE4A99B81763104600D4A9"
             {
-            "SourcePath" = "8:..\\..\\Cassia\\obj\\Debug\\Cassia.dll"
+            "SourcePath" = "8:..\\..\\Cassia\\Source\\Cassia\\obj\\Debug\\Cassia.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_EBDBDCAD6BB845F58711AAD14D46AAE6"
