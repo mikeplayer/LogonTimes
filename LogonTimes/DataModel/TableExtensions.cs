@@ -5,9 +5,30 @@ using System;
 using System.Reflection;
 using LogonTimes.IoC;
 using LogonTimes.DateHandling;
+using System.Text;
 
 namespace LogonTimes.DataModel
 {
+    #region Applications
+    public partial class Application
+    {
+        private IDataAccess dataAccess;
+
+        public Application()
+        {
+            dataAccess = IocRegistry.GetInstance<IDataAccess>();
+        }
+
+        public List<PersonApplication> PersonApplications
+        {
+            get
+            {
+                return dataAccess.PersonApplications.Where(x => x.ApplicationId == ApplicationId).ToList();
+            }
+        }
+    }
+    #endregion Applications
+
     #region Day of week
     public partial class DayOfWeek
     {
@@ -200,6 +221,14 @@ namespace LogonTimes.DataModel
             }
         }
 
+        public List<PersonApplication> PersonApplications
+        {
+            get
+            {
+                return dataAccess.PersonApplications.Where(x => x.PersonId == PersonId).ToList();
+            }
+        }
+
         public bool IsRestricted
         {
             get
@@ -226,6 +255,55 @@ namespace LogonTimes.DataModel
         }
     }
     #endregion
+
+    #region PersonApplication
+    public partial class PersonApplication
+    {
+        private IDataAccess dataAccess;
+
+        public PersonApplication()
+        {
+            dataAccess = IocRegistry.GetInstance<IDataAccess>();
+        }
+
+        public override string ToString()
+        {
+            var detail = new StringBuilder();
+            if (Person != null)
+            {
+                detail.Append(Person.LogonName);
+                detail.Append(" ");
+            }
+            if (Application != null)
+            {
+                detail.Append(Application.ApplicationName);
+                detail.Append(" ");
+            }
+            if (!Permitted)
+            {
+                detail.Append(" not");
+            }
+            detail.Append(" permitted");
+            return detail.ToString();
+        }
+
+        public Application Application
+        {
+            get
+            {
+                return dataAccess.Applications.FirstOrDefault(x => x.ApplicationId == ApplicationId);
+            }
+        }
+
+        public Person Person
+        {
+            get
+            {
+                return dataAccess.People.FirstOrDefault(x => x.PersonId == PersonId);
+            }
+        }
+    }
+    #endregion PersonApplication
 
     #region Time Period
     public partial class TimePeriod

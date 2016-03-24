@@ -5,12 +5,14 @@ namespace LogonTimes.DataModel
 {
     public interface IDataAccess
     {
+        List<Application> Applications { get; }
         List<DayOfWeek> DaysOfWeek { get; }
         List<EventType> EventTypes { get; }
         List<HoursPerDay> HoursPerDays { get; }
         List<LogonTime> LogonTimes { get; }
         List<LogonTimeAllowed> LogonTimesAllowed { get; }
         List<Person> People { get; }
+        List<PersonApplication> PersonApplications { get; }
         bool StillWorking { get; }
         List<SystemSettingType> SystemSettingTypes { get; }
         List<TimePeriod> TimePeriods { get; }

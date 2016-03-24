@@ -9,6 +9,7 @@ using LogonTimes.IoC;
 using LogonTimes.TimeControl;
 using LogonTimes.People;
 using LogonTimes.DateHandling;
+using LogonTimes.Applications;
 
 namespace LogonTimes.DataModel
 {
@@ -18,14 +19,17 @@ namespace LogonTimes.DataModel
         , IWorkingItemsData
         , ITimeManagementData
         , IUserManagementData
+        , IApplicationManagementData
     {
         private IDates dates;
+        private List<Application> applications;
         private List<DayOfWeek> daysOfWeek;
         private List<EventType> eventTypes;
         private List<HoursPerDay> hoursPerDays;
         private List<LogonTime> logonTimes;
         private List<LogonTimeAllowed> logonTimeAlloweds;
         private List<Person> persons;
+        private List<PersonApplication> personApplications;
         private List<SystemSettingType> systemSettingTypes;
         private List<TimePeriod> timePeriods;
         public event EventHandler<PersonEventArgs> PersonModificationFinished;
@@ -51,12 +55,14 @@ namespace LogonTimes.DataModel
             if (configUpdated.BoolValue.Value)
             {
                 logger.Log("Configuration changed - refreshing data", DebugLevels.Debug);
+                applications = null;
                 daysOfWeek = null;
                 eventTypes = null;
                 hoursPerDays = null;
                 logonTimes = null;
                 logonTimeAlloweds = null;
                 persons = null;
+                personApplications = null;
                 systemSettingTypes = null;
                 timePeriods = null;
                 configUpdated.SystemSetting = false.ToString();
@@ -79,6 +85,32 @@ namespace LogonTimes.DataModel
                 return peopleToBeRestricted.Count + peopleToBeUnrestricted.Count + logonTimeAllowedForUpdate.Count;
             }
         }
+
+        #region Applications
+        public List<Application> Applications
+        {
+            get
+            {
+                if (applications == null)
+                {
+                    using (var db = new LogonTimesDB())
+                    {
+                        applications = (from application in db.Applications select application).ToList();
+                    }
+                }
+                return applications;
+            }
+        }
+
+        public void AddApplication(Application application)
+        {
+            using (var db = new LogonTimesDB())
+            {
+                application.ApplicationId = Convert.ToInt32(db.InsertWithIdentity(application));
+                Applications.Add(application);
+            }
+        }
+        #endregion Applications
 
         #region Days of week
         public List<DayOfWeek> DaysOfWeek
@@ -439,6 +471,23 @@ namespace LogonTimes.DataModel
             return People.First(x => x.PersonId == personId);
         }
         #endregion
+
+        #region PersonApplication
+        public List<PersonApplication> PersonApplications
+        {
+            get
+            {
+                if (personApplications == null)
+                {
+                    using (var db = new LogonTimesDB())
+                    {
+                        personApplications = (from personApplication in db.PersonApplications select personApplication).ToList();
+                    }
+                }
+                return personApplications;
+            }
+        }
+        #endregion PersonApplication
 
         #region System settings
         public List<SystemSettingType> SystemSettingTypes

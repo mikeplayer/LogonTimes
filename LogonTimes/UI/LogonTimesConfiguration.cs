@@ -11,6 +11,8 @@ using LogonTimes.People;
 using System.Security.Principal;
 using LogonTimes.IoC;
 using LogonTimes.DateHandling;
+using Microsoft.Win32;
+using LogonTimes.Applications;
 
 namespace LogonTimes.UI
 {
@@ -19,6 +21,7 @@ namespace LogonTimes.UI
         private ILogonTimesConfigurationData dataAccess;
         private IUserManagement userManagement;
         private ITimeManagement timeManagement;
+        private IApplicationManagement applicationManagement;
         private IDates dates;
         private bool isLoading = true;
         private int currentFocusItem;
@@ -36,10 +39,12 @@ namespace LogonTimes.UI
             dataAccess = IocRegistry.GetInstance<ILogonTimesConfigurationData>();
             timeManagement = IocRegistry.GetInstance<ITimeManagement>();
             userManagement = IocRegistry.GetInstance<IUserManagement>();
+            applicationManagement = IocRegistry.GetInstance<IApplicationManagement>();
             dates = IocRegistry.GetInstance<IDates>();
             CheckPermissions();
             LoadUsers();
             SetupLogonTimesGrid();
+            LoadPrograms();
         }
 
         private void CheckPermissions()
@@ -48,7 +53,7 @@ namespace LogonTimes.UI
             if (!isAdmin)
             {
                 MessageBox.Show("This program must be run as an administrator\r\nRight click and select 'Run as administrator'", "Must run as an administrator");
-                Application.Exit();
+                System.Windows.Forms.Application.Exit();
             }
         }
 
@@ -79,6 +84,48 @@ namespace LogonTimes.UI
                 AddPerson(person);
             }
             SetItemAvailability();
+        }
+
+        private void LoadPrograms()
+        {
+            DateTime start = DateTime.Now;
+            foreach (var application in applicationManagement.Applications)
+            {
+                string[] items = { application.ApplicationName, application.ApplicationPath };
+                ListViewItem applicationItem = new ListViewItem(items);
+                lvApplications.Items.Add(applicationItem);
+            }
+            string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registry_key))
+            {
+                foreach (string subkey_name in key.GetSubKeyNames())
+                {
+                    using (RegistryKey subkey = key.OpenSubKey(subkey_name))
+                    {
+                        string displayName = null;
+                        string installLocation = null;
+                        var displayNameItem = subkey.GetValue("DisplayName");
+                        if (displayNameItem != null)
+                        {
+                            displayName = displayNameItem.ToString();
+                        }
+                        var installLocationItem = subkey.GetValue("InstallLocation");
+                        if (installLocationItem != null)
+                        {
+                            installLocation = installLocationItem.ToString();
+                        }
+                        if (!string.IsNullOrEmpty(displayName) && !string.IsNullOrEmpty(installLocation))
+                        {
+                            string[] items = { displayName, installLocation };
+                            ListViewItem applicationItem = new ListViewItem(items);
+                            lvApplications.Items.Add(applicationItem);
+                        }
+                    }
+                }
+            }
+            DateTime end = DateTime.Now;
+            var difference = end.Subtract(start);
+            MessageBox.Show(string.Format("Load software time: {0}", difference));
         }
 
         private void SetIsLoadingPeople(bool isLoading)
@@ -242,7 +289,10 @@ namespace LogonTimes.UI
 
         private void listPeople_Leave(object sender, EventArgs e)
         {
-            currentFocusItem = listPeople.FocusedItem.Index;
+            if (listPeople.FocusedItem != null)
+            {
+                currentFocusItem = listPeople.FocusedItem.Index;
+            }
         }
 
         private void listPeople_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)

@@ -92,6 +92,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Applications\ApplicationManagement.cs" />
+    <Compile Include="Applications\IApplicationManagement.cs" />
+    <Compile Include="Applications\IApplicationManagementData.cs" />
     <Compile Include="DataModel\IDataAccess.cs" />
     <Compile Include="DateHandling\DateImplementation.cs" />
     <Compile Include="DateHandling\IDates.cs" />

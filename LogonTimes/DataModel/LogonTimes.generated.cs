@@ -19,12 +19,14 @@ namespace LogonTimes.DataModel
 	/// </summary>
 	public partial class LogonTimesDB : LinqToDB.Data.DataConnection
 	{
+		public ITable<Application>         Applications         { get { return this.GetTable<Application>(); } }
 		public ITable<DayOfWeek>           DayOfWeeks           { get { return this.GetTable<DayOfWeek>(); } }
 		public ITable<EventType>           EventTypes           { get { return this.GetTable<EventType>(); } }
 		public ITable<HoursPerDay>         HoursPerDays         { get { return this.GetTable<HoursPerDay>(); } }
 		public ITable<LogonTime>           LogonTimes           { get { return this.GetTable<LogonTime>(); } }
 		public ITable<LogonTimeAllowed>    LogonTimeAlloweds    { get { return this.GetTable<LogonTimeAllowed>(); } }
 		public ITable<Person>              People               { get { return this.GetTable<Person>(); } }
+		public ITable<PersonApplication>   PersonApplications   { get { return this.GetTable<PersonApplication>(); } }
 		public ITable<SystemSettingDetail> SystemSettingDetails { get { return this.GetTable<SystemSettingDetail>(); } }
 		public ITable<SystemSettingType>   SystemSettingTypes   { get { return this.GetTable<SystemSettingType>(); } }
 		public ITable<TimePeriod>          TimePeriods          { get { return this.GetTable<TimePeriod>(); } }
@@ -41,6 +43,15 @@ namespace LogonTimes.DataModel
 		}
 
 		partial void InitDataContext();
+	}
+
+
+	[Table("Application")]
+	public partial class Application
+    {
+		[PrimaryKey, Identity] public int    ApplicationId   { get; set; } // Long
+		[Column,     NotNull ] public string ApplicationName { get; set; } // text(255)
+		[Column,     NotNull ] public string ApplicationPath { get; set; } // text(1000)
 	}
 
 	[Table("DayOfWeek")]
@@ -94,6 +105,15 @@ namespace LogonTimes.DataModel
 	{
 		[PrimaryKey, Identity] public int    PersonId  { get; set; } // Long
 		[Column,     NotNull ] public string LogonName { get; set; } // text(100)
+	}
+
+	[Table("PersonApplication")]
+	public partial class PersonApplication
+	{
+		[PrimaryKey, Identity] public int  PersonApplicationId  { get; set; } // Long
+		[Column,     NotNull ] public int  PersonId             { get; set; } // Long
+		[Column,     NotNull ] public int  ApplicationId        { get; set; } // Long
+		[Column,     NotNull ] public bool Permitted            { get; set; } // Bit
 	}
 
 	[Table("SystemSettingDetails")]

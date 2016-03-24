@@ -6,6 +6,7 @@ using LogonTimes.DataModel;
 using LogonTimes.TimeControl;
 using LogonTimes.Logging;
 using LogonTimes.DateHandling;
+using LogonTimes.Applications;
 
 namespace LogonTimes.IoC
 {
@@ -89,11 +90,13 @@ namespace LogonTimes.IoC
 
                 iocContainer.Configure(config => config.Scan(scanner =>
                 {
-                    scanner.AssemblyContainingType<IUserManagement>();
-                    scanner.AssemblyContainingType<ITimeManagement>();
-                    scanner.AssemblyContainingType<IEventManagement>();
-                    scanner.AssemblyContainingType<IDataAccess>();
-                    scanner.AssemblyContainingType<IDates>();
+                    scanner.TheCallingAssembly();
+                    scanner.AddAllTypesOf<IUserManagement>();
+                    scanner.AddAllTypesOf<ITimeManagement>();
+                    scanner.AddAllTypesOf<IEventManagement>();
+                    scanner.AddAllTypesOf<IApplicationManagement>();
+                    scanner.AddAllTypesOf<IDataAccess>();
+                    scanner.AddAllTypesOf<IDates>();
                     scanner.WithDefaultConventions();
                 }));
                 iocContainer.Configure(_ =>
@@ -104,6 +107,7 @@ namespace LogonTimes.IoC
                     _.Forward<IDataAccess, IWorkingItemsData>();
                     _.Forward<IDataAccess, ITimeManagementData>();
                     _.Forward<IDataAccess, IUserManagementData>();
+                    _.Forward<IDataAccess, IApplicationManagementData>();
                     _.ForSingletonOf<ILogger>().Use<Logger>();
                 });
             }
