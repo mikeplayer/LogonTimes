@@ -487,6 +487,23 @@ namespace LogonTimes.DataModel
                 return personApplications;
             }
         }
+
+        public void AddOrUpdatePersonApplication(PersonApplication personApplication)
+        {
+            using (var db = new LogonTimesDB())
+            {
+                if (PersonApplications.Any(x => x.PersonApplicationId == personApplication.PersonApplicationId))
+                {
+                    db.Update(personApplication);
+                    PersonApplications.Remove(personApplication);
+                }
+                else
+                {
+                    personApplication.PersonApplicationId = Convert.ToInt32(db.InsertWithIdentity(personApplication));
+                }
+                PersonApplications.Add(personApplication);
+            }
+        }
         #endregion PersonApplication
 
         #region System settings

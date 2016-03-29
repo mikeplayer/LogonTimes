@@ -95,34 +95,6 @@ namespace LogonTimes.UI
                 ListViewItem applicationItem = new ListViewItem(items);
                 lvApplications.Items.Add(applicationItem);
             }
-            string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registry_key))
-            {
-                foreach (string subkey_name in key.GetSubKeyNames())
-                {
-                    using (RegistryKey subkey = key.OpenSubKey(subkey_name))
-                    {
-                        string displayName = null;
-                        string installLocation = null;
-                        var displayNameItem = subkey.GetValue("DisplayName");
-                        if (displayNameItem != null)
-                        {
-                            displayName = displayNameItem.ToString();
-                        }
-                        var installLocationItem = subkey.GetValue("InstallLocation");
-                        if (installLocationItem != null)
-                        {
-                            installLocation = installLocationItem.ToString();
-                        }
-                        if (!string.IsNullOrEmpty(displayName) && !string.IsNullOrEmpty(installLocation))
-                        {
-                            string[] items = { displayName, installLocation };
-                            ListViewItem applicationItem = new ListViewItem(items);
-                            lvApplications.Items.Add(applicationItem);
-                        }
-                    }
-                }
-            }
             DateTime end = DateTime.Now;
             var difference = end.Subtract(start);
             MessageBox.Show(string.Format("Load software time: {0}", difference));
