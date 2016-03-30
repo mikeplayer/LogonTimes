@@ -31,6 +31,7 @@ namespace LogonTimes.UI
         private WhenAllowedValues currentHoverTarget = null;
         private delegate void SetPersonCallback(Person person);
         private delegate void SetLoadingCallback(bool isLoading);
+        private bool isRestricted = false;
 
         #region Initialisation
         public LogonTimesConfiguration()
@@ -44,7 +45,6 @@ namespace LogonTimes.UI
             CheckPermissions();
             LoadUsers();
             SetupLogonTimesGrid();
-            LoadPrograms();
         }
 
         private void CheckPermissions()
@@ -67,6 +67,7 @@ namespace LogonTimes.UI
             else
             {
                 ListViewItem personItem = new ListViewItem(person.LogonName);
+                personItem.Tag = person;
                 personItem.Checked = userManagement.PersonIsRestricted(person);
                 listPeople.Items.Add(personItem);
             }
@@ -93,39 +94,11 @@ namespace LogonTimes.UI
             {
                 string[] items = { application.ApplicationName, application.ApplicationPath };
                 ListViewItem applicationItem = new ListViewItem(items);
+                applicationItem.Tag = application;
                 lvApplications.Items.Add(applicationItem);
-            }
-            string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registry_key))
-            {
-                foreach (string subkey_name in key.GetSubKeyNames())
-                {
-                    using (RegistryKey subkey = key.OpenSubKey(subkey_name))
-                    {
-                        string displayName = null;
-                        string installLocation = null;
-                        var displayNameItem = subkey.GetValue("DisplayName");
-                        if (displayNameItem != null)
-                        {
-                            displayName = displayNameItem.ToString();
-                        }
-                        var installLocationItem = subkey.GetValue("InstallLocation");
-                        if (installLocationItem != null)
-                        {
-                            installLocation = installLocationItem.ToString();
-                        }
-                        if (!string.IsNullOrEmpty(displayName) && !string.IsNullOrEmpty(installLocation))
-                        {
-                            string[] items = { displayName, installLocation };
-                            ListViewItem applicationItem = new ListViewItem(items);
-                            lvApplications.Items.Add(applicationItem);
-                        }
-                    }
-                }
             }
             DateTime end = DateTime.Now;
             var difference = end.Subtract(start);
-            MessageBox.Show(string.Format("Load software time: {0}", difference));
         }
 
         private void SetIsLoadingPeople(bool isLoading)
@@ -151,6 +124,7 @@ namespace LogonTimes.UI
         private void UserManagementPersonLoadingComplete(object sender, EventArgs e)
         {
             SetIsLoadingPeople(false);
+            LoadPrograms();
         }
 
         private void UserManagementPersonLoaded(object sender, PersonEventArgs e)
@@ -262,7 +236,7 @@ namespace LogonTimes.UI
                 col++;
             }
         }
-        #endregion
+        #endregion Initialisation
 
         #region people list drawing stuff
         private void resizePersonColumn()
@@ -353,36 +327,34 @@ namespace LogonTimes.UI
             //e.DrawBackground();
             //e.DrawText();
         }
-        #endregion
+        #endregion people list drawing stuff
 
         #region local methods
-        private string CurrentPerson
+        private Person CurrentPerson
         {
             get
             {
                 if (listPeople.SelectedItems.Count == 0)
                 {
-                    return string.Empty;
+                    return null;
                 }
-                return listPeople.SelectedItems[0].Text;
+                return (Person)listPeople.SelectedItems[0].Tag;
             }
         }
 
         private void SetItemAvailability()
         {
-            bool isRestricted = false;
-            if (!string.IsNullOrEmpty(CurrentPerson))
+            isRestricted = false;
+            if (CurrentPerson != null)
             {
                 isRestricted = userManagement.PersonIsRestricted(CurrentPerson);
             }
             pnlDetail.Visible = isRestricted;
+            pnlApplications.Visible = isRestricted;
         }
 
-        private void LoadPersonData()
+        private void LoadHours()
         {
-            lblDetails.Text = string.Format("Details for {0}", CurrentPerson);
-            lblWhen.Text = string.Format("When can {0} use the computer", CurrentPerson);
-            lblTotal.Text = string.Format("Total hours allowed each day for {0}", CurrentPerson);
             dgvHoursAllowed.Rows.Clear();
             dgvHoursAllowed.Refresh();
             var hoursPerDay = userManagement.HoursPerDayForPerson(CurrentPerson);
@@ -401,6 +373,34 @@ namespace LogonTimes.UI
             }
         }
 
+        private void LoadApplications()
+        {
+            if (isRestricted)
+            {
+                isLoading = true;
+                applicationManagement.CheckApplicationPermissions(CurrentPerson);
+                foreach (ListViewItem item in lvApplications.Items)
+                {
+                    var application = (DataModel.Application)item.Tag;
+                    var personApplication = application.PersonApplications.FirstOrDefault(x => x.PersonId.Equals(CurrentPerson.PersonId));
+                    item.Checked = (personApplication != null && !personApplication.Permitted);
+                }
+                isLoading = false;
+            }
+        }
+
+        private void LoadPersonData()
+        {
+            if (isRestricted)
+            {
+                lblDetails.Text = string.Format("Details for {0}", CurrentPerson);
+                lblWhen.Text = string.Format("When can {0} use the computer", CurrentPerson);
+                lblTotal.Text = string.Format("Total hours allowed each day for {0}", CurrentPerson);
+                LoadHours();
+                LoadApplications();
+            }
+        }
+
         private void SetBackColour(WhenAllowedValues whenAllowedValues)
         {
             var cell = gridWhen[whenAllowedValues.GridRow, whenAllowedValues.GridColumn];
@@ -414,7 +414,7 @@ namespace LogonTimes.UI
             }
 
         }
-        #endregion
+        #endregion local methods
 
         #region event handlers
         private void listPeople_ItemChecked(object sender, ItemCheckedEventArgs e)
@@ -545,7 +545,25 @@ namespace LogonTimes.UI
                 workingItems.ShowDialog(this);
             }
         }
-        #endregion
+
+        private void lvApplications_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            if (!isLoading)
+            {
+                ListViewItem item = e.Item;
+                var application = (DataModel.Application)item.Tag;
+                if (item.Checked)
+                {
+                    applicationManagement.RestrictAccess(CurrentPerson, application);
+                }
+                else
+                {
+                    applicationManagement.UnrestrictAccess(CurrentPerson, application);
+                }
+                SetItemAvailability();
+            }
+        }
+        #endregion event handlers
 
         #region subclasses
         private class WhenAllowedValuesList
@@ -588,6 +606,6 @@ namespace LogonTimes.UI
                 return " ";
             }
         }
-        #endregion
+        #endregion subclasses
     }
 }

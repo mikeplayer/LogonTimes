@@ -105,6 +105,7 @@ namespace LogonTimes.DataModel
 	{
 		[PrimaryKey, Identity] public int    PersonId  { get; set; } // Long
 		[Column,     NotNull ] public string LogonName { get; set; } // text(100)
+		[Column,     NotNull ] public string SID       { get; set; } // text(255)
 	}
 
 	[Table("PersonApplication")]

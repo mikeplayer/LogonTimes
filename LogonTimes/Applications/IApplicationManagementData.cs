@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using LogonTimes.DataModel;
 
 namespace LogonTimes.Applications
 {
     public interface IApplicationManagementData
     {
+        List<Application> Applications { get; }
+        void AddApplication(Application application);
+        void AddOrUpdatePersonApplication(PersonApplication personApplication);
+        Person PersonForSID(string value);
     }
 }

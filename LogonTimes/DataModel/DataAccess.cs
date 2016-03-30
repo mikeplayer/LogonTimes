@@ -470,6 +470,11 @@ namespace LogonTimes.DataModel
             }
             return People.First(x => x.PersonId == personId);
         }
+
+        public Person PersonForSID(string SID)
+        {
+            return People.FirstOrDefault(x => x.SID.Equals(SID));
+        }
         #endregion
 
         #region PersonApplication
@@ -485,6 +490,23 @@ namespace LogonTimes.DataModel
                     }
                 }
                 return personApplications;
+            }
+        }
+
+        public void AddOrUpdatePersonApplication(PersonApplication personApplication)
+        {
+            using (var db = new LogonTimesDB())
+            {
+                if (PersonApplications.Any(x => x.PersonApplicationId == personApplication.PersonApplicationId))
+                {
+                    db.Update(personApplication);
+                    PersonApplications.Remove(personApplication);
+                }
+                else
+                {
+                    personApplication.PersonApplicationId = Convert.ToInt32(db.InsertWithIdentity(personApplication));
+                }
+                PersonApplications.Add(personApplication);
             }
         }
         #endregion PersonApplication

@@ -34,6 +34,8 @@
             this.splitter = new System.Windows.Forms.SplitContainer();
             this.listPeople = new System.Windows.Forms.ListView();
             this.colPerson = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.tabMain = new System.Windows.Forms.TabControl();
+            this.tabLogonTimes = new System.Windows.Forms.TabPage();
             this.pnlDetail = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox2 = new System.Windows.Forms.TextBox();
@@ -47,22 +49,22 @@
             this.columnDay = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.columnHoursAllowed = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblDetails = new System.Windows.Forms.Label();
-            this.toolTipPersonList = new System.Windows.Forms.ToolTip(this.components);
-            this.tabMain = new System.Windows.Forms.TabControl();
-            this.tabLogonTimes = new System.Windows.Forms.TabPage();
             this.tabApplicationAccess = new System.Windows.Forms.TabPage();
             this.lvApplications = new System.Windows.Forms.ListView();
             this.AppName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.AppPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.toolTipPersonList = new System.Windows.Forms.ToolTip(this.components);
+            this.pnlApplications = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.splitter)).BeginInit();
             this.splitter.Panel1.SuspendLayout();
             this.splitter.Panel2.SuspendLayout();
             this.splitter.SuspendLayout();
-            this.pnlDetail.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvHoursAllowed)).BeginInit();
             this.tabMain.SuspendLayout();
             this.tabLogonTimes.SuspendLayout();
+            this.pnlDetail.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvHoursAllowed)).BeginInit();
             this.tabApplicationAccess.SuspendLayout();
+            this.pnlApplications.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitter
@@ -119,6 +121,27 @@
             // 
             this.colPerson.Text = "Person";
             this.colPerson.Width = 115;
+            // 
+            // tabMain
+            // 
+            this.tabMain.Controls.Add(this.tabLogonTimes);
+            this.tabMain.Controls.Add(this.tabApplicationAccess);
+            this.tabMain.Location = new System.Drawing.Point(3, 3);
+            this.tabMain.Name = "tabMain";
+            this.tabMain.SelectedIndex = 0;
+            this.tabMain.Size = new System.Drawing.Size(936, 548);
+            this.tabMain.TabIndex = 6;
+            // 
+            // tabLogonTimes
+            // 
+            this.tabLogonTimes.BackColor = System.Drawing.SystemColors.Control;
+            this.tabLogonTimes.Controls.Add(this.pnlDetail);
+            this.tabLogonTimes.Location = new System.Drawing.Point(4, 22);
+            this.tabLogonTimes.Name = "tabLogonTimes";
+            this.tabLogonTimes.Padding = new System.Windows.Forms.Padding(3);
+            this.tabLogonTimes.Size = new System.Drawing.Size(928, 522);
+            this.tabLogonTimes.TabIndex = 0;
+            this.tabLogonTimes.Text = "Logon Times";
             // 
             // pnlDetail
             // 
@@ -280,31 +303,10 @@
             this.lblDetails.TabIndex = 2;
             this.lblDetails.Text = "Details for ";
             // 
-            // tabMain
-            // 
-            this.tabMain.Controls.Add(this.tabLogonTimes);
-            this.tabMain.Controls.Add(this.tabApplicationAccess);
-            this.tabMain.Location = new System.Drawing.Point(3, 3);
-            this.tabMain.Name = "tabMain";
-            this.tabMain.SelectedIndex = 0;
-            this.tabMain.Size = new System.Drawing.Size(936, 548);
-            this.tabMain.TabIndex = 6;
-            // 
-            // tabLogonTimes
-            // 
-            this.tabLogonTimes.BackColor = System.Drawing.SystemColors.Control;
-            this.tabLogonTimes.Controls.Add(this.pnlDetail);
-            this.tabLogonTimes.Location = new System.Drawing.Point(4, 22);
-            this.tabLogonTimes.Name = "tabLogonTimes";
-            this.tabLogonTimes.Padding = new System.Windows.Forms.Padding(3);
-            this.tabLogonTimes.Size = new System.Drawing.Size(928, 522);
-            this.tabLogonTimes.TabIndex = 0;
-            this.tabLogonTimes.Text = "Logon Times";
-            // 
             // tabApplicationAccess
             // 
             this.tabApplicationAccess.BackColor = System.Drawing.SystemColors.Control;
-            this.tabApplicationAccess.Controls.Add(this.lvApplications);
+            this.tabApplicationAccess.Controls.Add(this.pnlApplications);
             this.tabApplicationAccess.Location = new System.Drawing.Point(4, 22);
             this.tabApplicationAccess.Name = "tabApplicationAccess";
             this.tabApplicationAccess.Padding = new System.Windows.Forms.Padding(3);
@@ -322,13 +324,14 @@
             this.lvApplications.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.AppName,
             this.AppPath});
-            this.lvApplications.Location = new System.Drawing.Point(6, 37);
+            this.lvApplications.Location = new System.Drawing.Point(3, 3);
             this.lvApplications.MultiSelect = false;
             this.lvApplications.Name = "lvApplications";
-            this.lvApplications.Size = new System.Drawing.Size(613, 479);
+            this.lvApplications.Size = new System.Drawing.Size(910, 438);
             this.lvApplications.TabIndex = 0;
             this.lvApplications.UseCompatibleStateImageBehavior = false;
             this.lvApplications.View = System.Windows.Forms.View.Details;
+            this.lvApplications.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lvApplications_ItemChecked);
             // 
             // AppName
             // 
@@ -339,6 +342,14 @@
             // 
             this.AppPath.Text = "Application Path";
             this.AppPath.Width = 400;
+            // 
+            // pnlApplications
+            // 
+            this.pnlApplications.Controls.Add(this.lvApplications);
+            this.pnlApplications.Location = new System.Drawing.Point(6, 6);
+            this.pnlApplications.Name = "pnlApplications";
+            this.pnlApplications.Size = new System.Drawing.Size(916, 510);
+            this.pnlApplications.TabIndex = 1;
             // 
             // LogonTimesConfiguration
             // 
@@ -356,12 +367,13 @@
             this.splitter.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitter)).EndInit();
             this.splitter.ResumeLayout(false);
+            this.tabMain.ResumeLayout(false);
+            this.tabLogonTimes.ResumeLayout(false);
             this.pnlDetail.ResumeLayout(false);
             this.pnlDetail.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvHoursAllowed)).EndInit();
-            this.tabMain.ResumeLayout(false);
-            this.tabLogonTimes.ResumeLayout(false);
             this.tabApplicationAccess.ResumeLayout(false);
+            this.pnlApplications.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -390,5 +402,6 @@
         private System.Windows.Forms.ListView lvApplications;
         private System.Windows.Forms.ColumnHeader AppName;
         private System.Windows.Forms.ColumnHeader AppPath;
+        private System.Windows.Forms.Panel pnlApplications;
     }
 }

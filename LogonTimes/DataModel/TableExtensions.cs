@@ -26,6 +26,15 @@ namespace LogonTimes.DataModel
                 return dataAccess.PersonApplications.Where(x => x.ApplicationId == ApplicationId).ToList();
             }
         }
+
+        public bool IsRestricted(Person person)
+        {
+            if (PersonApplications.Any(x => x.PersonId.Equals(person.PersonId) && !x.Permitted))
+            {
+                return true;
+            }
+            return false;
+        }
     }
     #endregion Applications
 
