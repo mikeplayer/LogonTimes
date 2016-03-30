@@ -4,17 +4,21 @@ using LogonTimes.IoC;
 using Microsoft.Win32;
 using System.Linq;
 using System;
+using System.Security.AccessControl;
+using System.IO;
 
 namespace LogonTimes.Applications
 {
     public class ApplicationManagement : IApplicationManagement
     {
         private IApplicationManagementData dataAccess;
+        private IFileServices fileServices;
         private List<Application> applications;
 
         public ApplicationManagement()
         {
             dataAccess = IocRegistry.GetInstance<IApplicationManagementData>();
+            fileServices = IocRegistry.GetInstance<IFileServices>();
         }
 
         public IEnumerable<Application> Applications
@@ -32,50 +36,18 @@ namespace LogonTimes.Applications
 
         private void LoadRegisteredApplications()
         {
-            string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registry_key))
+            foreach (var application in fileServices.RegisteredApplications)
             {
-                foreach (string subkey_name in key.GetSubKeyNames())
+                if (!Applications.Any(x => x.ApplicationName.Equals(application.ApplicationName) && x.ApplicationPath.Equals(application.ApplicationPath)))
                 {
-                    using (RegistryKey subkey = key.OpenSubKey(subkey_name))
-                    {
-                        string displayName = null;
-                        string installLocation = null;
-                        var displayNameItem = subkey.GetValue("DisplayName");
-                        if (displayNameItem != null)
-                        {
-                            displayName = displayNameItem.ToString();
-                        }
-                        var installLocationItem = subkey.GetValue("InstallLocation");
-                        if (installLocationItem != null)
-                        {
-                            installLocation = installLocationItem.ToString();
-                        }
-                        if (!string.IsNullOrEmpty(displayName) && !string.IsNullOrEmpty(installLocation))
-                        {
-                            if (!Applications.Any(x => x.ApplicationName.Equals(displayName) && x.ApplicationPath.Equals(installLocation)))
-                            {
-                                AddApplication(displayName, installLocation);
-                            }
-                        }
-                    }
+                    dataAccess.AddApplication(application);
                 }
             }
         }
 
-        public void AddApplication(string applicationName, string applicationPath)
-        {
-            Application application = new Application
-            {
-                ApplicationName = applicationName,
-                ApplicationPath = applicationPath
-            };
-            dataAccess.AddApplication(application);
-        }
-
         public void RestrictAccess(Person person, Application application)
         {
-            PersonApplication personApplication = person.PersonApplications.First(x => x.ApplicationId.Equals(application.ApplicationId));
+            PersonApplication personApplication = person.PersonApplications.FirstOrDefault(x => x.ApplicationId.Equals(application.ApplicationId));
             if (personApplication == null)
             {
                 personApplication = new PersonApplication
@@ -84,19 +56,68 @@ namespace LogonTimes.Applications
                     ApplicationId = application.ApplicationId,
                     Permitted = false
                 };
-                dataAccess.AddOrUpdatePersonApplication(personApplication);
             }
+            else
+            {
+                personApplication.Permitted = false;
+            }
+            dataAccess.AddOrUpdatePersonApplication(personApplication);
+            SetFileSecurity(personApplication, AccessControlType.Deny);
         }
 
         public void UnrestrictAccess(Person person, Application application)
         {
-            PersonApplication personApplication = person.PersonApplications.First(x => x.ApplicationId.Equals(application.ApplicationId));
+            if (person == null)
+            {
+                return;
+            }
+            PersonApplication personApplication = person.PersonApplications.FirstOrDefault(x => x.ApplicationId.Equals(application.ApplicationId));
             if (personApplication == null)
             {
                 return;
             }
             personApplication.Permitted = true;
             dataAccess.AddOrUpdatePersonApplication(personApplication);
+            SetFileSecurity(personApplication, AccessControlType.Allow);
+        }
+
+        private void SetFileSecurity(PersonApplication personApplication, AccessControlType controlType)
+        {
+            FileSecurity security = File.GetAccessControl(personApplication.Application.ApplicationPath);
+            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
+            foreach (var rule in rules)
+            {
+                var currentRule = (FileSystemAccessRule)rule;
+                var person = dataAccess.PersonForSID(currentRule.IdentityReference.Value);
+                var accessType = currentRule.AccessControlType;
+            }
+        }
+
+        public void CheckApplicationPermissions(Person person)
+        {
+            foreach (var application in Applications)
+            {
+                var personApplication = application.PersonApplications.FirstOrDefault(x => x.PersonId.Equals(person.PersonId));
+                bool permitted = fileServices.HasPermission(person, application);
+                if (!permitted && (personApplication == null || personApplication.Permitted))
+                {
+                    if (personApplication == null)
+                    {
+                        personApplication = new PersonApplication
+                        {
+                            PersonId = person.PersonId,
+                            ApplicationId = application.ApplicationId,
+                        };
+                    }
+                    personApplication.Permitted = false;
+                    dataAccess.AddOrUpdatePersonApplication(personApplication);
+                }
+                if (permitted && personApplication != null && !personApplication.Permitted)
+                {
+                    personApplication.Permitted = true;
+                    dataAccess.AddOrUpdatePersonApplication(personApplication);
+                }
+            }
         }
     }
 }

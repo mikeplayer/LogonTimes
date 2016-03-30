@@ -8,5 +8,6 @@ namespace LogonTimes.Applications
         List<Application> Applications { get; }
         void AddApplication(Application application);
         void AddOrUpdatePersonApplication(PersonApplication personApplication);
+        Person PersonForSID(string value);
     }
 }

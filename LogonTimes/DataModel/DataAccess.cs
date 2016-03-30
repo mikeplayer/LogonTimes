@@ -470,6 +470,11 @@ namespace LogonTimes.DataModel
             }
             return People.First(x => x.PersonId == personId);
         }
+
+        public Person PersonForSID(string SID)
+        {
+            return People.FirstOrDefault(x => x.SID.Equals(SID));
+        }
         #endregion
 
         #region PersonApplication

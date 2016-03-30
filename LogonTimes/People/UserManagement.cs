@@ -46,8 +46,11 @@ namespace LogonTimes.People
                 var found = people.Any(x => x.LogonName.Equals(personName));
                 if (!found)
                 {
-                    Person person = new Person();
-                    person.LogonName = personName;
+                    Person person = new Person()
+                    {
+                        LogonName = personName,
+                        SID = userAccount["SID"].ToString()
+                    };
                     dataAccess.AddPerson(person);
                     EventHandler<PersonEventArgs> handler = PersonLoadedFromUserAccount;
                     if (handler != null)
@@ -118,9 +121,8 @@ namespace LogonTimes.People
             dataAccess.UpdateHourPerDay(hoursAllowed);
         }
 
-        public List<HoursPerDay> HoursPerDayForPerson(string personName)
+        public List<HoursPerDay> HoursPerDayForPerson(Person person)
         {
-            var person = GetPersonDetail(personName);
             if (person == null)
             {
                 return null;
@@ -128,9 +130,18 @@ namespace LogonTimes.People
             return person.HoursPerDay;
         }
 
-        public List<LogonTimeAllowed> LogonTimesAllowed(string userName)
+        //public List<HoursPerDay> HoursPerDayForPerson(string personName)
+        //{
+        //    return HoursPerDayForPerson(GetPersonDetail(personName));
+        //}
+
+        //public List<LogonTimeAllowed> LogonTimesAllowed(string userName)
+        //{
+        //    return LogonTimesAllowed(GetPersonDetail(userName));
+        //}
+
+        public List<LogonTimeAllowed> LogonTimesAllowed(Person person)
         {
-            Person person = GetPersonDetail(userName);
             return person.LogonTimesAllowed
                 .OrderBy(x => x.DayNumber)
                 .ThenBy(x => x.TimePeriod.PeriodStart)

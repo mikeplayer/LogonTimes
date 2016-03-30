@@ -94,6 +94,7 @@ namespace LogonTimes.IoC
                     scanner.AddAllTypesOf<IUserManagement>();
                     scanner.AddAllTypesOf<ITimeManagement>();
                     scanner.AddAllTypesOf<IEventManagement>();
+                    scanner.AddAllTypesOf<IFileServices>();
                     scanner.AddAllTypesOf<IApplicationManagement>();
                     scanner.AddAllTypesOf<IDataAccess>();
                     scanner.AddAllTypesOf<IDates>();

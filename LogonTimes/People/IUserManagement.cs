@@ -10,7 +10,8 @@ namespace LogonTimes.People
         event EventHandler PersonLoadingComplete;
 
         Person GetPersonDetail(string personName);
-        List<HoursPerDay> HoursPerDayForPerson(string personName);
+        List<HoursPerDay> HoursPerDayForPerson(Person person);
+        //List<HoursPerDay> HoursPerDayForPerson(string personName);
         List<Person> LoadPeople();
         bool PersonIsRestricted(string personName);
         bool PersonIsRestricted(Person person);
@@ -18,6 +19,7 @@ namespace LogonTimes.People
         void SetPersonToUnrestricted(string personName);
         void UpdateHoursPerDay(int hoursPerDayId, float? newValue);
         void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed);
-        List<LogonTimeAllowed> LogonTimesAllowed(string userName);
+        List<LogonTimeAllowed> LogonTimesAllowed(Person person);
+        //List<LogonTimeAllowed> LogonTimesAllowed(string userName);
     }
 }
