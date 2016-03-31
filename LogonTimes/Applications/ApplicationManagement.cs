@@ -62,7 +62,7 @@ namespace LogonTimes.Applications
                 personApplication.Permitted = false;
             }
             dataAccess.AddOrUpdatePersonApplication(personApplication);
-            SetFileSecurity(personApplication, AccessControlType.Deny);
+            fileServices.SetFileSecurity(personApplication, AccessControlType.Deny);
         }
 
         public void UnrestrictAccess(Person person, Application application)
@@ -78,19 +78,7 @@ namespace LogonTimes.Applications
             }
             personApplication.Permitted = true;
             dataAccess.AddOrUpdatePersonApplication(personApplication);
-            SetFileSecurity(personApplication, AccessControlType.Allow);
-        }
-
-        private void SetFileSecurity(PersonApplication personApplication, AccessControlType controlType)
-        {
-            FileSecurity security = File.GetAccessControl(personApplication.Application.ApplicationPath);
-            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
-            foreach (var rule in rules)
-            {
-                var currentRule = (FileSystemAccessRule)rule;
-                var person = dataAccess.PersonForSID(currentRule.IdentityReference.Value);
-                var accessType = currentRule.AccessControlType;
-            }
+            fileServices.SetFileSecurity(personApplication, AccessControlType.Allow);
         }
 
         public void CheckApplicationPermissions(Person person)
