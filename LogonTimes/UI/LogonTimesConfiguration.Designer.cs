@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LogonTimesConfiguration));
             this.splitter = new System.Windows.Forms.SplitContainer();
             this.listPeople = new System.Windows.Forms.ListView();
@@ -50,11 +50,13 @@
             this.columnHoursAllowed = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblDetails = new System.Windows.Forms.Label();
             this.tabApplicationAccess = new System.Windows.Forms.TabPage();
+            this.pnlApplications = new System.Windows.Forms.Panel();
             this.lvApplications = new System.Windows.Forms.ListView();
             this.AppName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.AppPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.toolTipPersonList = new System.Windows.Forms.ToolTip(this.components);
-            this.pnlApplications = new System.Windows.Forms.Panel();
+            this.btnRestrictAccess = new System.Windows.Forms.Button();
+            this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             ((System.ComponentModel.ISupportInitialize)(this.splitter)).BeginInit();
             this.splitter.Panel1.SuspendLayout();
             this.splitter.Panel2.SuspendLayout();
@@ -285,9 +287,9 @@
             // columnHoursAllowed
             // 
             this.columnHoursAllowed.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle1.Format = "N1";
-            dataGridViewCellStyle1.NullValue = "(unlimited)";
-            this.columnHoursAllowed.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Format = "N1";
+            dataGridViewCellStyle2.NullValue = "(unlimited)";
+            this.columnHoursAllowed.DefaultCellStyle = dataGridViewCellStyle2;
             this.columnHoursAllowed.FillWeight = 45F;
             this.columnHoursAllowed.HeaderText = "Hours Allowed";
             this.columnHoursAllowed.MinimumWidth = 100;
@@ -313,6 +315,15 @@
             this.tabApplicationAccess.Size = new System.Drawing.Size(928, 522);
             this.tabApplicationAccess.TabIndex = 1;
             this.tabApplicationAccess.Text = "Application Access";
+            // 
+            // pnlApplications
+            // 
+            this.pnlApplications.Controls.Add(this.btnRestrictAccess);
+            this.pnlApplications.Controls.Add(this.lvApplications);
+            this.pnlApplications.Location = new System.Drawing.Point(6, 6);
+            this.pnlApplications.Name = "pnlApplications";
+            this.pnlApplications.Size = new System.Drawing.Size(916, 510);
+            this.pnlApplications.TabIndex = 1;
             // 
             // lvApplications
             // 
@@ -343,13 +354,19 @@
             this.AppPath.Text = "Application Path";
             this.AppPath.Width = 400;
             // 
-            // pnlApplications
+            // btnRestrictAccess
             // 
-            this.pnlApplications.Controls.Add(this.lvApplications);
-            this.pnlApplications.Location = new System.Drawing.Point(6, 6);
-            this.pnlApplications.Name = "pnlApplications";
-            this.pnlApplications.Size = new System.Drawing.Size(916, 510);
-            this.pnlApplications.TabIndex = 1;
+            this.btnRestrictAccess.Location = new System.Drawing.Point(25, 461);
+            this.btnRestrictAccess.Name = "btnRestrictAccess";
+            this.btnRestrictAccess.Size = new System.Drawing.Size(232, 23);
+            this.btnRestrictAccess.TabIndex = 1;
+            this.btnRestrictAccess.Text = "Restrict access to another directory";
+            this.btnRestrictAccess.UseVisualStyleBackColor = true;
+            this.btnRestrictAccess.Click += new System.EventHandler(this.btnRestrictAccess_Click);
+            // 
+            // folderBrowserDialog
+            // 
+            this.folderBrowserDialog.Description = "Select folder that you wish to restrict access";
             // 
             // LogonTimesConfiguration
             // 
@@ -403,5 +420,7 @@
         private System.Windows.Forms.ColumnHeader AppName;
         private System.Windows.Forms.ColumnHeader AppPath;
         private System.Windows.Forms.Panel pnlApplications;
+        private System.Windows.Forms.Button btnRestrictAccess;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
     }
 }

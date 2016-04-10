@@ -11,6 +11,7 @@ namespace LogonTimes.Applications
 {
     public class ApplicationManagement : IApplicationManagement
     {
+        #region Constructors
         private IApplicationManagementData dataAccess;
         private IFileServices fileServices;
         private List<Application> applications;
@@ -20,7 +21,22 @@ namespace LogonTimes.Applications
             dataAccess = IocRegistry.GetInstance<IApplicationManagementData>();
             fileServices = IocRegistry.GetInstance<IFileServices>();
         }
+        #endregion Constructors
 
+        #region private methods
+        private void LoadRegisteredApplications()
+        {
+            foreach (var application in fileServices.RegisteredApplications)
+            {
+                if (!Applications.Any(x => x.ApplicationName.Equals(application.ApplicationName) && x.ApplicationPath.Equals(application.ApplicationPath)))
+                {
+                    dataAccess.AddApplication(application);
+                }
+            }
+        }
+        #endregion private methods
+
+        #region public properties
         public IEnumerable<Application> Applications
         {
             get
@@ -33,18 +49,9 @@ namespace LogonTimes.Applications
                 return applications;
             }
         }
+        #endregion public properties
 
-        private void LoadRegisteredApplications()
-        {
-            foreach (var application in fileServices.RegisteredApplications)
-            {
-                if (!Applications.Any(x => x.ApplicationName.Equals(application.ApplicationName) && x.ApplicationPath.Equals(application.ApplicationPath)))
-                {
-                    dataAccess.AddApplication(application);
-                }
-            }
-        }
-
+        #region public methods
         public void RestrictAccess(Person person, Application application)
         {
             PersonApplication personApplication = person.PersonApplications.FirstOrDefault(x => x.ApplicationId.Equals(application.ApplicationId));
@@ -107,5 +114,15 @@ namespace LogonTimes.Applications
                 }
             }
         }
+
+        public void AddPath(string selectedPath)
+        {
+            var application = new Application
+            {
+
+            };
+            dataAccess.AddApplication(application);
+        }
+        #endregion public methods
     }
 }
