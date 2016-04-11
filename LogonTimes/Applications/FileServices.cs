@@ -34,7 +34,9 @@ namespace LogonTimes.Applications
                             {
                                 installLocation = installLocationItem.ToString();
                             }
-                            if (!string.IsNullOrEmpty(displayName) && !string.IsNullOrEmpty(installLocation))
+                            if (!string.IsNullOrEmpty(displayName) 
+                                && !string.IsNullOrEmpty(installLocation)
+                                && Directory.Exists(installLocation))
                             {
                                 Application application = new Application
                                 {
@@ -56,22 +58,6 @@ namespace LogonTimes.Applications
             var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
             foreach (FileSystemAccessRule rule in rules)
             {
-                SelectQuery query = new SelectQuery("Win32_UserAccount", string.Format("SID = '{0}'", rule.IdentityReference.Value));
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-                foreach (ManagementObject userAccount in searcher.Get())
-                {
-                    if (person.SID.Equals(userAccount["SID"].ToString()))
-                    {
-                        var accessType = rule.AccessControlType;
-                        if ((rule.FileSystemRights & FileSystemRights.Read) == FileSystemRights.Read)
-                        {
-                            if (accessType.Equals(AccessControlType.Deny))
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                }
                 if (person.SID.Equals(rule.IdentityReference.Value))
                 {
                     var accessType = rule.AccessControlType;

@@ -38,7 +38,7 @@ namespace LogonTimes.People
         private void AddNewPeople()
         {
             var people = dataAccess.People;
-            SelectQuery query = new SelectQuery("Win32_UserAccount");
+            SelectQuery query = new SelectQuery("Win32_UserAccount", string.Format("Domain = '{0}'", Environment.MachineName));
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
             foreach (ManagementObject userAccount in searcher.Get())
             {
