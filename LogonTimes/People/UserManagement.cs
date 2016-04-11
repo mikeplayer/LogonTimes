@@ -10,29 +10,25 @@ namespace LogonTimes.People
 {
     public class UserManagement : IUserManagement
     {
+        #region local variables
         public event EventHandler<PersonEventArgs> PersonLoadedFromUserAccount;
         public event EventHandler PersonLoadingComplete;
         private List<Person> peopleBeingModified = new List<Person>();
         private IUserManagementData dataAccess;
+        #endregion local variables
 
+        #region constructors
         public UserManagement()
         {
             dataAccess = IocRegistry.GetInstance<IUserManagementData>();
             dataAccess.PersonModificationFinished += DataAccessPersonModificationFinished;
         }
+        #endregion constructors
 
+        #region private methods
         private void DataAccessPersonModificationFinished(object sender, PersonEventArgs e)
         {
             peopleBeingModified.Remove(e.Person);
-        }
-
-        public List<Person> LoadPeople()
-        {
-            var people = dataAccess.People;
-            Thread loadPersonThread = new Thread(AddNewPeople);
-            loadPersonThread.IsBackground = true;
-            loadPersonThread.Start();
-            return people.ToList();
         }
 
         private void AddNewPeople()
@@ -64,6 +60,17 @@ namespace LogonTimes.People
             {
                 completeHandler(this, new EventArgs());
             }
+        }
+        #endregion private methods
+
+        #region public methods
+        public List<Person> LoadPeople()
+        {
+            var people = dataAccess.People;
+            Thread loadPersonThread = new Thread(AddNewPeople);
+            loadPersonThread.IsBackground = true;
+            loadPersonThread.Start();
+            return people.ToList();
         }
 
         public void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)
@@ -147,5 +154,6 @@ namespace LogonTimes.People
                 .ThenBy(x => x.TimePeriod.PeriodStart)
                 .ToList();
         }
+        #endregion public methods
     }
 }

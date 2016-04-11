@@ -563,6 +563,15 @@ namespace LogonTimes.UI
                 SetItemAvailability();
             }
         }
+
+        private void btnRestrictAccess_Click(object sender, EventArgs e)
+        {
+            DialogResult result = folderBrowserDialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                applicationManagement.AddPath(folderBrowserDialog.SelectedPath);
+            }
+        }
         #endregion event handlers
 
         #region subclasses

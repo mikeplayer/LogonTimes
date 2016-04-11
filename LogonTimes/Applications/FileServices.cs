@@ -5,11 +5,19 @@ using Microsoft.Win32;
 using System.Security.AccessControl;
 using System.IO;
 using System.Management;
+using LogonTimes.IoC;
 
 namespace LogonTimes.Applications
 {
     public class FileServices : IFileServices
     {
+        private IApplicationManagementData dataAccess;
+
+        public FileServices()
+        {
+            dataAccess = IocRegistry.GetInstance<IApplicationManagementData>();
+        }
+
         public List<Application> RegisteredApplications
         {
             get
@@ -71,6 +79,18 @@ namespace LogonTimes.Applications
                 }
             }
             return true;
+        }
+
+        public void SetFileSecurity(PersonApplication personApplication, AccessControlType controlType)
+        {
+            FileSecurity security = File.GetAccessControl(personApplication.Application.ApplicationPath);
+            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
+            foreach (var rule in rules)
+            {
+                var currentRule = (FileSystemAccessRule)rule;
+                var person = dataAccess.PersonForSID(currentRule.IdentityReference.Value);
+                var accessType = currentRule.AccessControlType;
+            }
         }
     }
 }
