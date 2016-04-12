@@ -34,7 +34,7 @@ namespace LogonTimes.People
         private void AddNewPeople()
         {
             var people = dataAccess.People;
-            SelectQuery query = new SelectQuery("Win32_UserAccount", string.Format("Domain = '{0}'", Environment.MachineName));
+            SelectQuery query = new SelectQuery("Win32_UserAccount", string.Format("Domain = '{0}'", UserDomain));
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
             foreach (ManagementObject userAccount in searcher.Get())
             {
@@ -71,6 +71,14 @@ namespace LogonTimes.People
             loadPersonThread.IsBackground = true;
             loadPersonThread.Start();
             return people.ToList();
+        }
+
+        public string UserDomain
+        {
+            get
+            {
+                return Environment.MachineName;
+            }
         }
 
         public void UpdateLogonTimeAllowed(LogonTimeAllowed logonTimeAllowed)

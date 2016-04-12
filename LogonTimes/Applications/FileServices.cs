@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using LogonTimes.DataModel;
 using Microsoft.Win32;
 using System.Security.AccessControl;
 using System.IO;
-using System.Management;
 using LogonTimes.IoC;
+using LogonTimes.People;
 
 namespace LogonTimes.Applications
 {
     public class FileServices : IFileServices
     {
         private IApplicationManagementData dataAccess;
+        private IUserManagement userManagement;
 
         public FileServices()
         {
             dataAccess = IocRegistry.GetInstance<IApplicationManagementData>();
+            userManagement = IocRegistry.GetInstance<IUserManagement>();
         }
 
         public List<Application> RegisteredApplications
@@ -60,8 +61,9 @@ namespace LogonTimes.Applications
             }
         }
 
-        public bool HasPermission(Person person, Application application)
+        List<FileSystemAccessRule> DenyRules(Person person, Application application)
         {
+            var result = new List<FileSystemAccessRule>();
             FileSecurity security = File.GetAccessControl(application.ApplicationPath);
             var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
             foreach (FileSystemAccessRule rule in rules)
@@ -69,13 +71,22 @@ namespace LogonTimes.Applications
                 if (person.SID.Equals(rule.IdentityReference.Value))
                 {
                     var accessType = rule.AccessControlType;
-                    if ((rule.FileSystemRights & FileSystemRights.Read) == FileSystemRights.Read)
+                    if (accessType.Equals(AccessControlType.Deny))
                     {
-                        if (accessType.Equals(AccessControlType.Deny))
-                        {
-                            return false;
-                        }
+                        result.Add(rule);
                     }
+                }
+            }
+            return result;
+        }
+
+        public bool HasPermission(Person person, Application application)
+        {
+            foreach (var rule in DenyRules(person, application))
+            {
+                if ((rule.FileSystemRights & FileSystemRights.FullControl) == FileSystemRights.FullControl)
+                {
+                    return false;
                 }
             }
             return true;
@@ -84,13 +95,22 @@ namespace LogonTimes.Applications
         public void SetFileSecurity(PersonApplication personApplication, AccessControlType controlType)
         {
             FileSecurity security = File.GetAccessControl(personApplication.Application.ApplicationPath);
-            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
-            foreach (var rule in rules)
+            foreach (var rule in DenyRules(personApplication.Person, personApplication.Application))
             {
-                var currentRule = (FileSystemAccessRule)rule;
-                var person = dataAccess.PersonForSID(currentRule.IdentityReference.Value);
-                var accessType = currentRule.AccessControlType;
+                if ((rule.FileSystemRights & FileSystemRights.FullControl) == FileSystemRights.FullControl)
+                {
+                    if (controlType.Equals(AccessControlType.Deny))
+                    {
+                        return;     //Already set how we want it
+                    }
+                    security.RemoveAccessRule(rule);
+                    return;
+                }
             }
+            //We will either have removed the deny rule or the rule doesn't exist - so we have already handled an Allow case
+            string account = string.Format(@"{0}\{1}", userManagement.UserDomain, personApplication.Person.LogonName);
+            security.AddAccessRule(new FileSystemAccessRule(account, FileSystemRights.FullControl, controlType));
+            File.SetAccessControl(personApplication.Application.ApplicationPath, security);
         }
     }
 }

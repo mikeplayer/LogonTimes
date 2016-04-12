@@ -9,6 +9,7 @@ namespace LogonTimes.People
         event EventHandler<PersonEventArgs> PersonLoadedFromUserAccount;
         event EventHandler PersonLoadingComplete;
 
+        string UserDomain { get; }
         Person GetPersonDetail(string personName);
         List<HoursPerDay> HoursPerDayForPerson(Person person);
         //List<HoursPerDay> HoursPerDayForPerson(string personName);
