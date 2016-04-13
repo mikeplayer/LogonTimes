@@ -9,6 +9,6 @@ namespace LogonTimes.Applications
         void RestrictAccess(Person person, Application application);
         void UnrestrictAccess(Person person, Application application);
         void CheckApplicationPermissions(Person currentPerson);
-        void AddPath(string selectedPath);
+        Application AddPath(string selectedPath);
     }
 }

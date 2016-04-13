@@ -87,15 +87,20 @@ namespace LogonTimes.UI
             SetItemAvailability();
         }
 
+        private void AddApplicationToList(DataModel.Application application)
+        {
+            string[] items = { application.ApplicationName, application.ApplicationPath };
+            ListViewItem applicationItem = new ListViewItem(items);
+            applicationItem.Tag = application;
+            lvApplications.Items.Add(applicationItem);
+        }
+
         private void LoadPrograms()
         {
             DateTime start = DateTime.Now;
             foreach (var application in applicationManagement.Applications)
             {
-                string[] items = { application.ApplicationName, application.ApplicationPath };
-                ListViewItem applicationItem = new ListViewItem(items);
-                applicationItem.Tag = application;
-                lvApplications.Items.Add(applicationItem);
+                AddApplicationToList(application);
             }
             DateTime end = DateTime.Now;
             var difference = end.Subtract(start);
@@ -569,7 +574,8 @@ namespace LogonTimes.UI
             DialogResult result = folderBrowserDialog.ShowDialog();
             if (result == DialogResult.OK)
             {
-                applicationManagement.AddPath(folderBrowserDialog.SelectedPath);
+                var application = applicationManagement.AddPath(folderBrowserDialog.SelectedPath);
+                AddApplicationToList(application);
             }
         }
         #endregion event handlers

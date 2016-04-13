@@ -61,7 +61,7 @@ namespace LogonTimes.Applications
             }
         }
 
-        List<FileSystemAccessRule> DenyRules(Person person, Application application)
+        private List<FileSystemAccessRule> DenyRules(Person person, Application application)
         {
             var result = new List<FileSystemAccessRule>();
             FileSecurity security = File.GetAccessControl(application.ApplicationPath);
@@ -104,6 +104,7 @@ namespace LogonTimes.Applications
                         return;     //Already set how we want it
                     }
                     security.RemoveAccessRule(rule);
+                    File.SetAccessControl(personApplication.Application.ApplicationPath, security);
                     return;
                 }
             }

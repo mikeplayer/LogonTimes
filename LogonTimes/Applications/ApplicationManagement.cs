@@ -115,13 +115,15 @@ namespace LogonTimes.Applications
             }
         }
 
-        public void AddPath(string selectedPath)
+        public Application AddPath(string selectedPath)
         {
             var application = new Application
             {
-
+                ApplicationPath = selectedPath,
+                ApplicationName = selectedPath,
             };
             dataAccess.AddApplication(application);
+            return application;
         }
         #endregion public methods
     }
